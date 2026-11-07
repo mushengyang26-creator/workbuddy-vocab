@@ -492,8 +492,8 @@
           <div class="card-inner">
             <div class="face front">
               <span class="lang">EN</span>
-              <p class="en" id="card-en"></p>
-              <span class="hint">點一下看中文意思</span>
+              <p class="en" id="card-en" title="點一下聽發音"></p>
+              <span class="hint">點單字聽發音，點其他地方看中文</span>
             </div>
             <div class="face back">
               <span class="lang">中文</span>
@@ -1189,6 +1189,31 @@
       $("flashcard").classList.toggle("flipped", flipped);
     }
 
+    function speakEnglish(text) {
+      const word = String(text || "").trim();
+      if (!word || !window.speechSynthesis) return;
+      const utter = new SpeechSynthesisUtterance(word);
+      utter.lang = "en-US";
+      utter.rate = 0.9;
+      const voices = window.speechSynthesis.getVoices() || [];
+      const enVoice = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en-us"))
+        || voices.find((v) => (v.lang || "").toLowerCase().startsWith("en"));
+      if (enVoice) utter.voice = enVoice;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utter);
+    }
+
+    function onFlashcardClick(event) {
+      const wordEl = event.target.closest(".en");
+      if (wordEl && $("flashcard").contains(wordEl)) {
+        event.preventDefault();
+        event.stopPropagation();
+        speakEnglish(wordEl.textContent);
+        return;
+      }
+      flipCard();
+    }
+
     function startCards(reshuffle, mode) {
       if (mode) runMode = mode;
       runQueue = wordsForRun();
@@ -1347,7 +1372,7 @@
 
     $("tab-card").addEventListener("click", () => switchMode("card"));
     $("tab-quiz").addEventListener("click", () => switchMode("quiz"));
-    $("flashcard").addEventListener("click", flipCard);
+    $("flashcard").addEventListener("click", onFlashcardClick);
     $("shuffle-card").addEventListener("click", () => startCards(true));
     $("mark-know").addEventListener("click", () => markCard("know"));
     $("mark-unknown").addEventListener("click", () => markCard("unknown"));
