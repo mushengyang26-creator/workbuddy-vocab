@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>英文單字學習</title>
+  <style>
+    :root {
+      --bg: #ebe4d6;
+      --paper: #fffaf2;
+      --ink: #221b14;
+      --muted: #7c7266;
+      --line: #e6d9c4;
+      --accent: #2f6a57;
+      --accent-deep: #245445;
+      --accent-soft: #e3f0ea;
+      --ok: #1f7a4d;
+      --ok-bg: #e3f6ea;
+      --bad: #c04a3c;
+      --bad-bg: #fdecea;
+      --shadow: 0 18px 40px rgba(54, 38, 16, 0.12);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: "PingFang TC", "Noto Sans TC", "Hiragino Sans CNS", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(900px 420px at 12% -8%, rgba(255, 248, 232, 0.95), transparent 56%),
+        radial-gradient(700px 380px at 110% 8%, rgba(186, 214, 198, 0.35), transparent 50%),
+        var(--bg);
+      padding: 28px 16px 48px;
+    }
+    .wrap { width: 100%; max-width: 1100px; margin: 0 auto; }
+    .study-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 16px;
+    }
+    .study-bar .ghost { padding: 8px 0; }
+    .study-bar .week-now {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 650;
+    }
+    [hidden] { display: none !important; }
+    @media (min-width: 800px) {
+      body { padding: 52px 56px 80px; }
+      header { margin-bottom: 28px; }
+      .badge { margin-bottom: 14px; padding: 5px 12px; font-size: 0.78rem; }
+      h1 { font-size: 2.15rem; margin-bottom: 10px; }
+      .sub { font-size: 1.08rem; }
+      .weeks { gap: 12px; margin: 32px 0 20px; }
+      .weeks button { padding: 10px 20px; font-size: 1rem; }
+      .week-note { font-size: 0.98rem; margin: 0 0 10px; }
+      .study-bar { margin: 0 0 24px; }
+      .study-bar .week-now { font-size: 1.05rem; }
+      .tabs {
+        padding: 6px;
+        max-width: 520px;
+        margin: 0 auto 32px;
+      }
+      .tabs button { padding: 13px 18px; font-size: 1.05rem; }
+      .meta { font-size: 1rem; margin-bottom: 14px; }
+      .progress { height: 5px; margin-bottom: 20px; }
+      .stage { margin-bottom: 22px; }
+      body.in-week { padding: 36px 48px 48px; }
+      .card { height: min(68vh, 640px); }
+      .face { padding: 56px 64px; border-radius: 32px; }
+      .card .en { font-size: clamp(3.8rem, 7vw, 5.4rem); }
+      .card .zh { font-size: clamp(2.5rem, 3.8vw, 3.2rem); line-height: 1.4; }
+      .lang { top: 24px; left: 28px; font-size: 0.8rem; }
+      .hint { bottom: 26px; font-size: 0.95rem; }
+      .card-actions {
+        max-width: 640px;
+        margin: 0 auto 16px;
+        gap: 16px;
+      }
+      .card-actions button { padding: 18px 20px; font-size: 1.2rem; border-radius: 18px; }
+      .nav {
+        max-width: 560px;
+        margin: 0 auto;
+        gap: 14px;
+      }
+      .nav button, .next-btn {
+        padding: 16px 18px;
+        font-size: 1.05rem;
+        border-radius: 18px;
+      }
+      .quiz-word {
+        min-height: 200px;
+        padding: 40px 36px;
+        margin-bottom: 22px;
+        border-radius: 32px;
+      }
+      .choices { grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
+      .choice { padding: 18px 20px; font-size: 1.12rem; border-radius: 18px; }
+      .choice .mark { width: 32px; height: 32px; font-size: 0.88rem; }
+      .feedback { font-size: 1.08rem; margin: 0 0 16px; }
+      .summary { padding: 52px 44px; border-radius: 32px; }
+      .summary h2 { font-size: 1.6rem; }
+    }
+    @media (max-width: 799px) {
+      body.in-week { padding: 16px 14px 32px; }
+    }
+    header { text-align: center; margin-bottom: 16px; }
+    .badge {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+    }
+    h1 {
+      font-size: 1.55rem;
+      font-weight: 720;
+      letter-spacing: 0.06em;
+      margin: 0 0 6px;
+    }
+    .sub { color: var(--muted); font-size: 0.92rem; margin: 0; line-height: 1.5; }
+    .weeks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin: 18px 0 16px;
+    }
+    .weeks button {
+      border: 1px solid var(--line);
+      background: rgba(255, 250, 242, 0.7);
+      color: var(--muted);
+      font: inherit;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    }
+    .weeks button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .week-note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin: -6px 0 16px;
+    }
+    .tabs {
+      display: flex;
+      background: rgba(255, 250, 242, 0.55);
+      border: 1px solid rgba(230, 217, 196, 0.9);
+      border-radius: 999px;
+      padding: 4px;
+      margin-bottom: 22px;
+      backdrop-filter: blur(10px);
+    }
+    .tabs button {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-weight: 650;
+      padding: 11px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .tabs button.active {
+      background: var(--paper);
+      color: var(--ink);
+      box-shadow: 0 6px 16px rgba(50, 36, 16, 0.08);
+    }
+    .panel { display: none; }
+    .panel.active { display: block; animation: rise 0.35s ease; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 10px;
+    }
+    .ghost {
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+      padding: 0;
+    }
+    .progress {
+      height: 4px;
+      background: #e7dcc8;
+      border-radius: 999px;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #3d8a70, #2f6a57);
+      border-radius: inherit;
+      transition: width 0.35s ease;
+    }
+    .stage { perspective: 1400px; margin-bottom: 16px; }
+    .card {
+      width: 100%;
+      height: 300px;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s cubic-bezier(.2,.85,.25,1);
+      transform-style: preserve-3d;
+    }
+    .card.flipped .card-inner { transform: rotateY(180deg); }
+    .face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.55), transparent 32%),
+        var(--paper);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 24px;
+    }
+    .back {
+      transform: rotateY(180deg);
+      background:
+        linear-gradient(180deg, rgba(232, 244, 237, 0.65), transparent 40%),
+        #f7f1e4;
+    }
+    .lang {
+      position: absolute;
+      top: 18px;
+      left: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+    .en {
+      font-family: "Iowan Old Style", Palatino, Georgia, serif;
+      font-size: clamp(2.2rem, 8vw, 3rem);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin: 0;
+      text-align: center;
+    }
+    .zh {
+      font-size: 1.85rem;
+      font-weight: 700;
+      margin: 0;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .hint {
+      position: absolute;
+      bottom: 20px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    .nav { display: flex; gap: 10px; }
+    .nav button, .next-btn, .choice { font: inherit; cursor: pointer; }
+    .nav button, .next-btn {
+      flex: 1;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 16px;
+      padding: 13px 14px;
+      font-weight: 650;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .nav button:hover, .choice:hover:not(:disabled) { transform: translateY(-1px); }
+    .nav button:disabled, .next-btn:disabled { opacity: 0.38; cursor: default; transform: none; }
+    .quiz-word {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.55), transparent 34%),
+        var(--paper);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.7);
+      min-height: 148px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 20px;
+      margin-bottom: 16px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .quiz-word.pulse {
+      animation: pulse 0.45s ease;
+      box-shadow: 0 0 0 6px rgba(31, 122, 77, 0.12), var(--shadow);
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    .choices { display: grid; gap: 10px; margin-bottom: 12px; }
+    .choices.shake { animation: shake 0.4s ease; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+    .choice {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      border-radius: 16px;
+      padding: 13px 14px;
+      font-size: 1.05rem;
+      color: var(--ink);
+      transition: background 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+    }
+    .choice .mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #f3eadc;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      flex: 0 0 auto;
+    }
+    .choice:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+    .choice.correct { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
+    .choice.wrong { border-color: var(--bad); background: var(--bad-bg); color: var(--bad); }
+    .choice.correct .mark, .choice.wrong .mark { background: rgba(255,255,255,0.7); color: inherit; }
+    .choice:disabled { cursor: default; }
+    .feedback {
+      min-height: 1.5em;
+      text-align: center;
+      margin: 0 0 12px;
+      font-weight: 700;
+    }
+    .feedback.ok { color: var(--ok); }
+    .feedback.bad { color: var(--bad); }
+    .next-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .next-btn:hover:not(:disabled) { background: var(--accent-deep); }
+    .summary {
+      display: none;
+      background: var(--paper);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 36px 24px;
+      text-align: center;
+    }
+    .summary.show { display: block; animation: rise 0.35s ease; }
+    .summary h2 {
+      margin: 0 0 8px;
+      font-size: 1.35rem;
+    }
+    .summary p {
+      margin: 0 0 22px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    #quiz-play.empty { display: none; }
+    #card-play.empty { display: none; }
+    .meta-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      justify-content: flex-end;
+    }
+    .card-actions { display: flex; gap: 10px; margin-bottom: 12px; }
+    .card-actions button {
+      flex: 1;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 16px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .card-actions button:hover { transform: translateY(-1px); }
+    .mark-unknown {
+      background: var(--bad-bg);
+      color: var(--bad);
+      border-color: #f0c4be;
+    }
+    .mark-know {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-color: #b7e0c6;
+    }
+    .pile-note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin: 12px 0 0;
+    }
+    .summary-actions { display: grid; gap: 10px; }
+    #retry-all-cards {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 16px;
+      padding: 13px 14px;
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header id="page-header">
+      <div class="badge">VOCAB</div>
+      <h1>英文單字學習</h1>
+      <p class="sub">學測模擬試題必備詞彙，選一週開始刷</p>
+    </header>
+
+    <div class="weeks" id="weeks"></div>
+    <p class="week-note" id="week-note">選一週開始練習</p>
+
+    <div id="study" hidden>
+    <div class="study-bar">
+      <button type="button" class="ghost" id="back-weeks">← 換一週</button>
+      <span class="week-now" id="week-label"></span>
+    </div>
+
+    <div class="tabs">
+      <button type="button" id="tab-card" class="active">單字卡</button>
+      <button type="button" id="tab-quiz">選擇題</button>
+    </div>
+
+    <section id="panel-card" class="panel active">
+      <div id="card-play">
+      <div class="meta">
+        <span id="card-count">第 1 / 0 張</span>
+        <div class="meta-actions">
+          <button type="button" class="ghost" id="review-unknown">只刷不會的</button>
+          <button type="button" class="ghost" id="shuffle-card">打亂順序</button>
+          <button type="button" class="ghost" id="reset-cards">重置</button>
+        </div>
+      </div>
+      <div class="progress"><span id="card-progress"></span></div>
+      <div class="stage">
+        <button type="button" class="card" id="flashcard" aria-label="點一下翻面">
+          <div class="card-inner">
+            <div class="face front">
+              <span class="lang">EN</span>
+              <p class="en" id="card-en"></p>
+              <span class="hint">點一下看中文意思</span>
+            </div>
+            <div class="face back">
+              <span class="lang">中文</span>
+              <p class="zh" id="card-zh"></p>
+              <span class="hint">再點一下翻回英文</span>
+            </div>
+          </div>
+        </button>
+      </div>
+      <div class="card-actions">
+        <button type="button" class="mark-unknown" id="mark-unknown">不會</button>
+        <button type="button" class="mark-know" id="mark-know">會</button>
+      </div>
+      <p class="pile-note" id="pile-note"></p>
+      </div>
+      <div class="summary" id="card-summary">
+        <h2>這一輪看完了</h2>
+        <p id="card-summary-text"></p>
+        <div class="summary-actions">
+          <button type="button" class="next-btn" id="retry-unknown">只刷不會的</button>
+          <button type="button" id="retry-all-cards">再刷全部</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-quiz" class="panel">
+      <div id="quiz-play">
+        <div class="meta">
+          <span id="quiz-progress">第 1 / 5 題</span>
+          <span id="quiz-score">答對 0</span>
+        </div>
+        <div class="progress"><span id="quiz-bar"></span></div>
+        <div class="quiz-word" id="quiz-word">
+          <p class="en" id="quiz-en"></p>
+        </div>
+        <div class="choices" id="choices"></div>
+        <p class="feedback" id="feedback"></p>
+        <button type="button" class="next-btn" id="next-quiz">下一題</button>
+      </div>
+      <div class="summary" id="quiz-summary">
+        <h2>這一組做完了</h2>
+        <p id="quiz-summary-text"></p>
+        <button type="button" class="next-btn" id="retry-quiz">再做一組</button>
+      </div>
+    </section>
+    </div>
+  </div>
+
+  <script>
+    // ========== 單字表：之後把新單字加在這裡 ==========
+    // 格式：{ en: "英文", zh: "中文意思", week: 第幾週 },
+    // 之後每週大約五個單字；選擇題每一組出五題，干擾項會優先從同一週抽取。
+    const WORDS = [
+      { en: "assist", zh: "協助（v.）", week: 1 },
+      { en: "direction", zh: "方向（n.；複數：指示）", week: 1 },
+      { en: "symptom", zh: "症狀（n.）", week: 1 },
+      { en: "awake", zh: "甦醒（v.）", week: 1 },
+      { en: "identity", zh: "身分（n.）", week: 1 },
+      { en: "struggle", zh: "掙扎（n./v.）", week: 1 },
+      { en: "confirm", zh: "確認（v.）", week: 1 },
+      { en: "demand", zh: "要求（n./v.）", week: 1 },
+      { en: "engage", zh: "使投入（v.）", week: 1 },
+      { en: "interact", zh: "互動（v.）", week: 1 },
+      { en: "recall", zh: "回憶；撤回（n./v.）", week: 1 },
+      { en: "distract", zh: "使分心（v.）", week: 1 },
+      { en: "approach", zh: "靠近；方法（n./v.）", week: 1 },
+      { en: "conserve", zh: "保育；節約（v.）", week: 1 },
+      { en: "recognize", zh: "認出（v.）", week: 1 },
+      { en: "strengthen", zh: "強化（v.）", week: 1 },
+      { en: "maintain", zh: "保持（v.）", week: 1 },
+      { en: "enhance", zh: "改善（v.）", week: 1 },
+      { en: "optimistic", zh: "樂觀的（adj.）", week: 1 },
+      { en: "pessimistic", zh: "悲觀的（adj.）", week: 1 },
+      { en: "cautious", zh: "小心的（adj.）", week: 1 },
+      { en: "specific", zh: "明確的（adj.）", week: 1 },
+      { en: "passionate", zh: "熱情的（adj.）", week: 1 },
+      { en: "critical", zh: "重要的（adj.）", week: 1 },
+      { en: "impressive", zh: "令人印象深刻的（adj.）", week: 1 },
+      { en: "hesitate", zh: "猶豫（v.）", week: 1 },
+      { en: "concern", zh: "顧慮（n./v.）", week: 1 },
+      { en: "feature", zh: "特色（n./v.）", week: 1 },
+      { en: "necessity", zh: "必要性；必需品（n.）", week: 1 },
+      { en: "spot", zh: "地點（n.）；看到（v.）", week: 1 },
+      { en: "access", zh: "取得；進入（n.）", week: 2 },
+      { en: "device", zh: "裝置（n.）", week: 2 },
+      { en: "degree", zh: "程度；文憑（n.）", week: 2 },
+      { en: "apply", zh: "申請；應用；塗抹（v.）", week: 2 },
+      { en: "capture", zh: "捕獲（v.）", week: 2 },
+      { en: "credible", zh: "可信的（adj.）", week: 2 },
+      { en: "application", zh: "申請（n.）", week: 2 },
+      { en: "ditch", zh: "拋棄（v.）", week: 2 },
+      { en: "permit", zh: "允許（v.）", week: 2 },
+      { en: "determine", zh: "決定；判定（v.）", week: 2 },
+      { en: "intention", zh: "意圖（n.）", week: 2 },
+      { en: "exception", zh: "例外（n.）", week: 2 },
+      { en: "dull", zh: "鈍的；笨的（adj.）", week: 2 },
+      { en: "scarce", zh: "稀少的（adj.）", week: 2 },
+      { en: "faithful", zh: "忠誠的（adj.）", week: 2 },
+      { en: "hospitable", zh: "好客的（adj.）", week: 2 },
+      { en: "expression", zh: "表達（n.）", week: 2 },
+      { en: "appliance", zh: "家電（n.）", week: 2 },
+      { en: "formal", zh: "正式的（adj.）", week: 2 },
+      { en: "classical", zh: "古典的（adj.）", week: 2 },
+      { en: "efficient", zh: "有效率的（adj.）", week: 2 },
+      { en: "expectation", zh: "期待（n.）", week: 2 },
+      { en: "effective", zh: "有效果的（adj.）", week: 2 },
+      { en: "consistent", zh: "始終如一的（adj.）", week: 2 },
+      { en: "historical", zh: "歷史（相關）的（adj.）", week: 2 },
+      { en: "boast", zh: "擁有（v.）", week: 2 },
+      { en: "content", zh: "內容物（n.）", week: 2 },
+      { en: "available", zh: "可取得的（adj.）", week: 3 },
+      { en: "burden", zh: "重擔（n.）", week: 3 },
+      { en: "comparison", zh: "比較（n.）", week: 3 },
+      { en: "criminal", zh: "犯人（n.）", week: 3 },
+      { en: "decade", zh: "十年（n.）", week: 3 },
+      { en: "detail", zh: "細節（n.）", week: 3 },
+      { en: "disappointment", zh: "失望（n.）", week: 3 },
+      { en: "drain", zh: "使流出（v.）", week: 3 },
+      { en: "employee", zh: "員工（n.）", week: 3 },
+      { en: "expense", zh: "費用（n.）", week: 3 },
+      { en: "extremely", zh: "非常（adv.）", week: 3 },
+      { en: "feature", zh: "特色（n.）", week: 3 },
+      { en: "image", zh: "形象（n.）", week: 3 },
+      { en: "import", zh: "進口（v.）", week: 3 },
+      { en: "impress", zh: "使……印象深刻（v.）", week: 3 },
+      { en: "instead", zh: "取代（adv.）", week: 3 },
+      { en: "occasion", zh: "場合（n.）", week: 3 },
+      { en: "opposite", zh: "相反的（adj.）", week: 3 },
+      { en: "origin", zh: "起源（n.）", week: 3 },
+      { en: "perform", zh: "演出（v.）", week: 3 },
+      { en: "practical", zh: "實用的（adj.）", week: 3 },
+      { en: "prevent", zh: "妨礙（v.）", week: 3 },
+      { en: "primary", zh: "主要的（adj.）", week: 3 },
+      { en: "process", zh: "處理（v.）", week: 3 },
+      { en: "rate", zh: "比率（n.）", week: 3 },
+      { en: "reduce", zh: "減少（v.）", week: 3 },
+      { en: "schedule", zh: "預定（v.）", week: 3 },
+      { en: "shadow", zh: "影子（n.）", week: 3 },
+      { en: "sufficient", zh: "足夠的（adj.）", week: 3 },
+      { en: "suggest", zh: "建議（v.）", week: 3 },
+      { en: "brutal", zh: "暴虐的（adj.）", week: 4 },
+      { en: "require", zh: "要求；需求（v.）", week: 4 },
+      { en: "wilderness", zh: "野外（n.）", week: 4 },
+      { en: "indigenous", zh: "原生的（adj.）", week: 4 },
+      { en: "estimate", zh: "估計（v.）", week: 4 },
+      { en: "inevitably", zh: "無可避免地（adv.）", week: 4 },
+      { en: "diminish", zh: "降低（v.）", week: 4 },
+      { en: "countless", zh: "無數的（adj.）", week: 4 },
+      { en: "accompany", zh: "陪伴；伴隨（v.）", week: 4 },
+      { en: "indicate", zh: "顯示（v.）", week: 4 },
+      { en: "merit", zh: "優點；價值（n.）", week: 4 },
+      { en: "regulation", zh: "規則（n.）", week: 4 },
+      { en: "medieval", zh: "中世紀的（adj.）", week: 4 },
+      { en: "desperately", zh: "絕望地（adv.）", week: 4 },
+      { en: "retain", zh: "保留（v.）", week: 4 },
+      { en: "approximately", zh: "大約（adv.）", week: 4 },
+      { en: "supplement", zh: "補充（n.）", week: 4 },
+      { en: "preventive", zh: "預防的（adj.）", week: 4 },
+      { en: "controversial", zh: "具爭議的（adj.）", week: 4 },
+      { en: "swap", zh: "交換（v.）", week: 4 },
+      { en: "awareness", zh: "意識（n.）", week: 4 },
+      { en: "vicious", zh: "凶暴的（adj.）", week: 4 },
+      { en: "minus", zh: "負的（adj.）", week: 4 },
+      { en: "eccentric", zh: "古怪的（adj.）", week: 4 },
+      { en: "relatively", zh: "相對地（adv.）", week: 4 },
+      { en: "distinguish", zh: "辨別（v.）", week: 4 },
+      { en: "prejudice", zh: "偏見（n.）", week: 4 },
+      { en: "discrimination", zh: "歧視（n.）", week: 4 },
+      { en: "unpredictable", zh: "不可預測的（adj.）", week: 4 },
+      { en: "composer", zh: "作曲家（n.）", week: 5 },
+      { en: "critic", zh: "評論家（n.）", week: 5 },
+      { en: "entertainment", zh: "娛樂（n.）", week: 5 },
+      { en: "investment", zh: "投資（n.）", week: 5 },
+      { en: "emphasis", zh: "重視（n.）", week: 5 },
+      { en: "resident", zh: "居民（n.）", week: 5 },
+      { en: "slogan", zh: "口號（n.）", week: 5 },
+      { en: "destination", zh: "目的地（n.）", week: 5 },
+      { en: "nasty", zh: "討厭的（adj.）", week: 5 },
+      { en: "modify", zh: "更改（v.）", week: 5 },
+      { en: "procession", zh: "隊伍（n.）", week: 5 },
+      { en: "disciple", zh: "信徒（n.）", week: 5 },
+      { en: "worship", zh: "敬奉（v.）", week: 5 },
+      { en: "academic", zh: "學術的（adj.）", week: 5 },
+      { en: "charity", zh: "慈善機構（n.）", week: 5 },
+      { en: "vague", zh: "含糊的（adj.）", week: 5 },
+      { en: "undoubtedly", zh: "毫無疑問地（adv.）", week: 5 },
+      { en: "architect", zh: "建築師（n.）", week: 5 },
+      { en: "intelligent", zh: "智能的（adj.）", week: 5 },
+      { en: "adjust", zh: "調整（v.）", week: 5 },
+      { en: "maintenance", zh: "保養（n.）", week: 5 },
+      { en: "commit", zh: "犯（錯、罪）；致力於（v.）", week: 5 },
+      { en: "competitor", zh: "參賽者（n.）", week: 5 },
+      { en: "intentionally", zh: "有意地（adv.）", week: 5 },
+      { en: "indignant", zh: "憤怒的（adj.）", week: 5 },
+      { en: "abolish", zh: "廢除（v.）", week: 5 },
+      { en: "tendency", zh: "傾向（n.）", week: 5 },
+      { en: "authority", zh: "當局（n.）", week: 5 },
+      { en: "inflation", zh: "通貨膨脹（n.）", week: 5 },
+      { en: "vomit", zh: "嘔吐（v.）", week: 5 },
+      { en: "anxious", zh: "焦慮的（adj.）", week: 6 },
+      { en: "attempt", zh: "試圖（v.）", week: 6 },
+      { en: "attract", zh: "吸引（v.）", week: 6 },
+      { en: "candidate", zh: "候選人（n.）", week: 6 },
+      { en: "commercial", zh: "商業的（adj.）", week: 6 },
+      { en: "commit", zh: "犯罪（v.）", week: 6 },
+      { en: "complain", zh: "抱怨（v.）", week: 6 },
+      { en: "consume", zh: "消耗；吃喝（v.）", week: 6 },
+      { en: "contact", zh: "接觸；聯絡（n.）", week: 6 },
+      { en: "emphasis", zh: "強調（n.）", week: 6 },
+      { en: "entertainment", zh: "娛樂（n.）", week: 6 },
+      { en: "eventually", zh: "最後（adv.）", week: 6 },
+      { en: "ignorance", zh: "無知（n.）", week: 6 },
+      { en: "impulse", zh: "衝動（n.）", week: 6 },
+      { en: "infect", zh: "感染（v.）", week: 6 },
+      { en: "influential", zh: "有影響力的（adj.）", week: 6 },
+      { en: "install", zh: "安裝（v.）", week: 6 },
+      { en: "isolate", zh: "隔離（v.）", week: 6 },
+      { en: "luxurious", zh: "奢侈的（adj.）", week: 6 },
+      { en: "manufacture", zh: "生產（n.）", week: 6 },
+      { en: "mysterious", zh: "神祕的（adj.）", week: 6 },
+      { en: "occupation", zh: "職業（n.）", week: 6 },
+      { en: "originate", zh: "起源（v.）", week: 6 },
+      { en: "possess", zh: "擁有（v.）", week: 6 },
+      { en: "potential", zh: "可能的；潛在的（adj.）", week: 6 },
+      { en: "symbolize", zh: "象徵（v.）", week: 6 },
+      { en: "transform", zh: "轉變（v.）", week: 6 },
+      { en: "vehicle", zh: "車輛；交通工具（n.）", week: 6 },
+      { en: "vividly", zh: "生動地（adv.）", week: 6 },
+      { en: "welfare", zh: "福利（n.）", week: 6 },
+      { en: "deprive", zh: "剝奪（v.）", week: 7 },
+      { en: "boast", zh: "誇耀（v.）", week: 7 },
+      { en: "oppression", zh: "壓迫（n.）", week: 7 },
+      { en: "reward", zh: "報答；獎賞（v.）", week: 7 },
+      { en: "captivity", zh: "囚禁（n.）", week: 7 },
+      { en: "approach", zh: "接近（v.）", week: 7 },
+      { en: "tolerable", zh: "可忍受的（adj.）", week: 7 },
+      { en: "ambitious", zh: "有野心的（adj.）", week: 7 },
+      { en: "arise", zh: "出現（v.）", week: 7 },
+      { en: "confrontation", zh: "對抗；衝突（n.）", week: 7 },
+      { en: "resemble", zh: "像（v.）", week: 7 },
+      { en: "indicate", zh: "指出（v.）", week: 7 },
+      { en: "launch", zh: "開啟（v.）", week: 7 },
+      { en: "encounter", zh: "遇到（v.）", week: 7 },
+      { en: "originate", zh: "起源（v.）", week: 7 },
+      { en: "journalist", zh: "記者（n.）", week: 7 },
+      { en: "founder", zh: "創辦人（n.）", week: 7 },
+      { en: "iconic", zh: "代表性的（adj.）", week: 7 },
+      { en: "standard", zh: "標準（n.）", week: 7 },
+      { en: "offer", zh: "提供（v.）", week: 7 },
+      { en: "gamble", zh: "賭博（v.）", week: 7 },
+      { en: "random", zh: "隨機的（adj.）", week: 7 },
+      { en: "various", zh: "各種的（adj.）", week: 7 },
+      { en: "assistance", zh: "協助（n.）", week: 7 },
+      { en: "fertile", zh: "肥沃的（adj.）", week: 7 },
+      { en: "harvest", zh: "豐收（n.）", week: 7 },
+      { en: "astonishing", zh: "驚人的（adj.）", week: 7 },
+      { en: "distinguish", zh: "區分（v.）", week: 7 },
+      { en: "enhance", zh: "加強（v.）", week: 7 },
+      { en: "privileged", zh: "享有特權的（adj.）", week: 7 },
+      { en: "resource", zh: "資源（n.）", week: 8 },
+      { en: "colony", zh: "殖民地（n.）", week: 8 },
+      { en: "compose", zh: "組成；編曲（v.）", week: 8 },
+      { en: "embrace", zh: "擁抱；欣然接受（v.）", week: 8 },
+      { en: "arouse", zh: "激起；引起（v.）", week: 8 },
+      { en: "intimate", zh: "親密的（adj.）", week: 8 },
+      { en: "extreme", zh: "極端的（adj.）；極端（n.）", week: 8 },
+      { en: "isolate", zh: "使……孤立（v.）", week: 8 },
+      { en: "operation", zh: "手術；運作（n.）", week: 8 },
+      { en: "fundamental", zh: "基本的（adj.）", week: 8 },
+      { en: "adequate", zh: "足夠的（adj.）", week: 8 },
+      { en: "sustain", zh: "維持；承受（v.）", week: 8 },
+      { en: "substitute", zh: "代替品（n.）；代替（v.）", week: 8 },
+      { en: "conventional", zh: "傳統的（adj.）", week: 8 },
+      { en: "massively", zh: "巨大地（adv.）", week: 8 },
+      { en: "respectively", zh: "分別地（adv.）", week: 8 },
+      { en: "thoroughly", zh: "徹底地（adv.）", week: 8 },
+      { en: "acquisition", zh: "得到；習得（n.）", week: 8 },
+      { en: "prediction", zh: "預測（n.）", week: 8 },
+      { en: "invention", zh: "發明（n.）", week: 8 },
+      { en: "destination", zh: "目的地（n.）", week: 8 },
+      { en: "attach", zh: "附著、附加（v.）", week: 8 },
+      { en: "connect", zh: "連結（v.）", week: 8 },
+      { en: "resolve", zh: "下定決心；解決（v.）", week: 8 },
+      { en: "relate", zh: "相關（v.）", week: 8 },
+      { en: "publish", zh: "出版（v.）", week: 8 },
+      { en: "apparently", zh: "明顯地（adv.）", week: 8 },
+      { en: "distribute", zh: "分發；分配（v.）", week: 8 },
+      { en: "emphasize", zh: "強調（v.）", week: 8 },
+      { en: "declare", zh: "宣告（v.）", week: 8 },
+      { en: "approximately", zh: "大約（adv.）", week: 8 },
+      { en: "undergo", zh: "經歷（v.）", week: 8 },
+      { en: "arguably", zh: "可以說是（adv.）", week: 8 },
+      { en: "tolerance", zh: "容忍（n.）", week: 9 },
+      { en: "impulse", zh: "衝動（n.）", week: 9 },
+      { en: "prosperity", zh: "繁榮（n.）", week: 9 },
+      { en: "insult", zh: "侮辱（n.）", week: 9 },
+      { en: "garment", zh: "衣服（n.）", week: 9 },
+      { en: "urgency", zh: "緊急（n.）", week: 9 },
+      { en: "recognition", zh: "辨識（n.）", week: 9 },
+      { en: "population", zh: "人口（n.）", week: 9 },
+      { en: "conflict", zh: "衝突（n.）", week: 9 },
+      { en: "civilization", zh: "文明（n.）", week: 9 },
+      { en: "approve", zh: "允許，贊同（v.；用法 approve of）", week: 9 },
+      { en: "impose", zh: "強行實施（v.；用法 impose sth. on sb.）", week: 9 },
+      { en: "implement", zh: "實施（v.）", week: 9 },
+      { en: "flee", zh: "逃走（v.；flee-fled-fled）", week: 9 },
+      { en: "pioneer", zh: "作為……的先鋒（v.）", week: 9 },
+      { en: "establish", zh: "創立（v.）", week: 9 },
+      { en: "overlook", zh: "眺望（v.）", week: 9 },
+      { en: "specialize", zh: "專精於（v.；用法 specialize in sth.）", week: 9 },
+      { en: "evolve", zh: "演化（v.）", week: 9 },
+      { en: "monitor", zh: "監控（v.）", week: 9 },
+      { en: "trivial", zh: "微不足道的（adj.）", week: 9 },
+      { en: "excessive", zh: "過量的（adj.）", week: 9 },
+      { en: "vacant", zh: "空的（adj.）", week: 9 },
+      { en: "profound", zh: "深刻的（adj.）", week: 9 },
+      { en: "reckless", zh: "輕率的（adj.）", week: 9 },
+      { en: "fertile", zh: "肥沃的（adj.）", week: 9 },
+      { en: "independent", zh: "獨立的（adj.）", week: 9 },
+      { en: "barely", zh: "幾乎不（adv.）", week: 9 },
+      { en: "readily", zh: "便利地，爽快地（adv.；readily available／accessible：隨時都可以取得）", week: 9 },
+      { en: "constantly", zh: "不斷地（adv.）", week: 9 },
+      { en: "awkward", zh: "尷尬的（adj.）", week: 10 },
+      { en: "facilitate", zh: "促進（v.）", week: 10 },
+      { en: "establish", zh: "建立（v.）", week: 10 },
+      { en: "surroundings", zh: "環境（n.）", week: 10 },
+      { en: "reluctant", zh: "不情願的（adj.；be reluctant to）", week: 10 },
+      { en: "immense", zh: "巨大的（adj.）", week: 10 },
+      { en: "venture", zh: "冒險（v.）", week: 10 },
+      { en: "hazard", zh: "危險（n.）", week: 10 },
+      { en: "demonstrate", zh: "顯現（v.）", week: 10 },
+      { en: "cognitive", zh: "認知的（adj.）", week: 10 },
+      { en: "derive", zh: "起源於（v.）", week: 10 },
+      { en: "continental", zh: "大陸的（adj.）", week: 10 },
+      { en: "accumulate", zh: "積聚（v.）", week: 10 },
+      { en: "concept", zh: "概念（n.）", week: 10 },
+      { en: "accurately", zh: "準確地（adv.）", week: 10 },
+      { en: "maximum", zh: "最大的（adj.）", week: 10 },
+      { en: "particular", zh: "特別的（adj.）", week: 10 },
+      { en: "adopt", zh: "採用（v.）", week: 10 },
+      { en: "foster", zh: "培養（v.）", week: 10 },
+      { en: "distinctive", zh: "獨特的（adj.）", week: 10 },
+      { en: "texture", zh: "質地（n.）", week: 10 },
+      { en: "alternative", zh: "替代品（n.）", week: 10 },
+      { en: "neutral", zh: "中性的（adj.）", week: 10 },
+      { en: "consumer", zh: "消費者（n.）", week: 10 },
+      { en: "workplace", zh: "工作場所（n.）", week: 10 },
+      { en: "certified", zh: "認證的（adj.）", week: 10 },
+      { en: "deliberately", zh: "故意（adv.）", week: 10 },
+      { en: "innovative", zh: "創新的（adj.）", week: 10 },
+      { en: "elaborate", zh: "精美的（adj.）", week: 10 },
+      { en: "distinctive", zh: "獨特的（adj.）", week: 10 },
+      { en: "broaden", zh: "拓展（v.）", week: 11 },
+      { en: "undoubtedly", zh: "毫無疑問的（adv.）", week: 11 },
+      { en: "destination", zh: "目的地（n.）", week: 11 },
+      { en: "initial", zh: "一開始的（adj.）", week: 11 },
+      { en: "substantial", zh: "大（量）的；多的（adj.）", week: 11 },
+      { en: "opponent", zh: "對手（n.）", week: 11 },
+      { en: "estimate", zh: "估計（v.）", week: 11 },
+      { en: "enforcement", zh: "（法律的）執行（n.）", week: 11 },
+      { en: "architecture", zh: "建築（物）（n.）", week: 11 },
+      { en: "compromise", zh: "妥協（v.）", week: 11 },
+      { en: "measurement", zh: "測量（n.）", week: 11 },
+      { en: "astronaut", zh: "太空人（n.）", week: 11 },
+      { en: "inspirational", zh: "具啟發性的；令人興奮的（adj.）", week: 11 },
+      { en: "conserve", zh: "保護；保有（v.）", week: 11 },
+      { en: "elaborate", zh: "精緻的；複雜的（adj.）", week: 11 },
+      { en: "depict", zh: "描寫（v.）", week: 11 },
+      { en: "inevitable", zh: "無可避免的（adj.）", week: 11 },
+      { en: "permanent", zh: "永久的（adj.）", week: 11 },
+      { en: "advocate", zh: "倡導者（n.）", week: 11 },
+      { en: "merchandise", zh: "商品（n.）", week: 11 },
+      { en: "eliminate", zh: "消除；淘汰（v.）", week: 11 },
+      { en: "inaccurate", zh: "不準確的（adj.）", week: 11 },
+      { en: "regulation", zh: "規則；調節（n.）", week: 11 },
+      { en: "civilization", zh: "文明（n.）", week: 11 },
+      { en: "heritage", zh: "遺產（n.）", week: 11 },
+      { en: "slaughter", zh: "宰殺（v.）", week: 11 },
+      { en: "abstract", zh: "抽象的（adj.）", week: 11 },
+      { en: "composition", zh: "作文；作曲；組成；構圖（n.）", week: 11 },
+      { en: "documentary", zh: "紀錄片（n.）", week: 11 },
+      { en: "reluctant", zh: "不情願的（adj.）", week: 11 },
+      { en: "separation", zh: "分離；分開（n.）", week: 12 },
+      { en: "separate", zh: "分開（v./n.）", week: 12 },
+      { en: "instantly", zh: "立即地（adv.）", week: 12 },
+      { en: "instance", zh: "例子（n.）", week: 12 },
+      { en: "insistence", zh: "堅持（n.）", week: 12 },
+      { en: "(in)sincere", zh: "（不）真誠的（adj.）", week: 12 },
+      { en: "criterion", zh: "標準（n.；複數 criteria）", week: 12 },
+      { en: "(in)adequate", zh: "（不）足夠的（adj.）", week: 12 },
+      { en: "highlight", zh: "強調；凸顯（v.）", week: 12 },
+      { en: "simplicity", zh: "簡單；樸素（n.）", week: 12 },
+      { en: "diversity", zh: "多樣性（n.）", week: 12 },
+      { en: "diverse", zh: "多樣的（adj.）", week: 12 },
+      { en: "diversify", zh: "使……多樣化（v.）", week: 12 },
+      { en: "reliance", zh: "依賴（n.）", week: 12 },
+      { en: "dependence", zh: "依賴（n.）", week: 12 },
+      { en: "confession", zh: "自白（n.）", week: 12 },
+      { en: "preference", zh: "偏好（n.）", week: 12 },
+      { en: "scarce", zh: "稀少的（adj.）", week: 12 },
+      { en: "scarcity", zh: "缺乏（n.）", week: 12 },
+      { en: "atmosphere", zh: "大氣；氣氛（n.）", week: 12 },
+      { en: "substance", zh: "物質（n.）", week: 12 },
+      { en: "condense", zh: "凝結（v.）", week: 12 },
+      { en: "feasible", zh: "可行的（adj.）", week: 12 },
+      { en: "sustainable", zh: "永續的（adj.）", week: 12 },
+      { en: "interpret", zh: "解釋；口譯（v.）", week: 12 },
+      { en: "extravagant", zh: "誇張的；奢侈的（adj.）", week: 12 },
+      { en: "excessive", zh: "過度的（adj.）", week: 12 },
+      { en: "literal", zh: "字面上的（adj.）", week: 12 },
+      { en: "literary", zh: "文學的（adj.）", week: 12 },
+      { en: "literate", zh: "識字的（adj.）", week: 12 },
+      { en: "subtle", zh: "微妙的（adj.）", week: 12 },
+      { en: "resilience", zh: "韌性；復原力（n.）", week: 12 },
+      { en: "resilient", zh: "有韌性的（adj.）", week: 12 },
+      { en: "vigorous", zh: "強健的（adj.）", week: 12 },
+      { en: "suppress", zh: "抑制（v.）", week: 12 },
+      { en: "vertical", zh: "垂直的（adj.）", week: 12 },
+      { en: "horizontal", zh: "水平的（adj.）", week: 12 },
+      { en: "drain", zh: "消耗；使流失（v.）", week: 12 },
+      { en: "disturb", zh: "干擾；擾亂（v.）", week: 12 },
+      { en: "confine", zh: "限制；侷限（v.）", week: 12 },
+      { en: "authentic", zh: "真實的；道地的（adj.）", week: 13 },
+      { en: "civil", zh: "有禮貌的；人民的（adj.）", week: 13 },
+      { en: "compose", zh: "構成；作曲（v.）", week: 13 },
+      { en: "concrete", zh: "具體的（adj.）", week: 13 },
+      { en: "confront", zh: "面對（v.）", week: 13 },
+      { en: "conserve", zh: "保育；節約（v.）", week: 13 },
+      { en: "compel", zh: "強迫；迫使（v.）", week: 13 },
+      { en: "discarded", zh: "被丟棄的（adj.）", week: 13 },
+      { en: "dignity", zh: "尊嚴（n.）", week: 13 },
+      { en: "durable", zh: "耐用的（adj.）", week: 13 },
+      { en: "empathy", zh: "同理心（n.）", week: 13 },
+      { en: "execute", zh: "執行（v.）", week: 13 },
+      { en: "flattering", zh: "討好的；奉承的（adj.）", week: 13 },
+      { en: "genuine", zh: "真誠的（adj.）", week: 13 },
+      { en: "hygiene", zh: "（個人）衛生（n.）", week: 13 },
+      { en: "sanitation", zh: "（環境）衛生（n.）", week: 13 },
+      { en: "integrate", zh: "融合；整合（v.）", week: 13 },
+      { en: "integrity", zh: "誠信（n.）", week: 13 },
+      { en: "manual", zh: "手工的（adj.）；手冊（n.）", week: 13 },
+      { en: "marginalized", zh: "邊緣化的（adj.）", week: 13 },
+      { en: "migrant", zh: "移工；移民（n.）", week: 13 },
+      { en: "notion", zh: "觀念（n.）", week: 13 },
+      { en: "prejudice", zh: "偏見（n.）", week: 13 },
+      { en: "psychological", zh: "心理的（adj.）", week: 13 },
+      { en: "ratio", zh: "比率（n.）", week: 13 },
+      { en: "resilient", zh: "有彈性的；能復原的（adj.）", week: 13 },
+      { en: "subsequent", zh: "隨後的（adj.）", week: 13 },
+      { en: "substantial", zh: "大量的；重要的（adj.）", week: 13 },
+      { en: "undermine", zh: "逐漸削弱（v.）", week: 13 },
+      { en: "allocate", zh: "分配（v.）", week: 13 },
+      { en: "articulate", zh: "清楚表達（v.）", week: 13 },
+      { en: "attribute", zh: "歸因於（v.）", week: 13 },
+      { en: "bias", zh: "偏見；成見（n.）", week: 13 },
+      { en: "divine", zh: "神聖的（adj.）", week: 13 },
+      { en: "manifest", zh: "表現；顯示（v.）", week: 13 },
+      { en: "parallel", zh: "平行的；相似的（adj.）", week: 13 },
+      { en: "allergy", zh: "過敏（n.）", week: 14 },
+      { en: "brochure", zh: "手冊（n.）", week: 14 },
+      { en: "manual", zh: "手冊（n.）；手動的（adj.）", week: 14 },
+      { en: "distant", zh: "遙遠的；疏遠的（adj.）", week: 14 },
+      { en: "compulsory", zh: "強制的（adj.）", week: 14 },
+      { en: "blunt", zh: "鈍的；直接了當的（adj.）", week: 14 },
+      { en: "sharp", zh: "銳利的；機智的（adj.）", week: 14 },
+      { en: "compile", zh: "彙整（v.）", week: 14 },
+      { en: "compel", zh: "迫使（v.）", week: 14 },
+      { en: "compelling", zh: "使人信服的（adj.）", week: 14 },
+      { en: "accommodate", zh: "住宿；容納（v.）", week: 14 },
+      { en: "accumulate", zh: "累積（v.）", week: 14 },
+      { en: "means", zh: "方式；財力（n.）", week: 14 },
+      { en: "compromise", zh: "妥協；傷害（n./v.）", week: 14 },
+      { en: "patriot", zh: "愛國者（n.）", week: 14 },
+      { en: "courteous", zh: "有禮貌的（adj.）", week: 14 },
+      { en: "commitment", zh: "投入；承諾（n.）", week: 14 },
+      { en: "initial", zh: "起初的（adj.）", week: 14 },
+      { en: "alternatively", zh: "替代地；或者（adv.）", week: 14 },
+      { en: "radically", zh: "根本地；徹底（adv.）", week: 14 },
+      { en: "anonymous", zh: "匿名的（adj.）", week: 14 },
+      { en: "evident", zh: "顯著的（adj.）", week: 14 },
+      { en: "toil", zh: "辛苦工作（n./v.）", week: 14 },
+      { en: "inherent", zh: "生來就有的（adj.）", week: 14 },
+      { en: "coherent", zh: "前後連貫的（adj.）", week: 14 },
+      { en: "imperial", zh: "帝國的（adj.）", week: 14 },
+      { en: "grant", zh: "給予（v.）", week: 14 },
+      { en: "compensation", zh: "補償（n.）", week: 14 },
+      { en: "cultivate", zh: "耕種；培養（v.）", week: 14 },
+      { en: "descendant", zh: "後代（n.）", week: 14 },
+      { en: "intensive", zh: "密集的（adj.）", week: 14 },
+      { en: "resemble", zh: "長得像（v.）", week: 14 },
+      { en: "outbreak", zh: "爆發（n.）", week: 15 },
+      { en: "isolation", zh: "孤立（n.）", week: 15 },
+      { en: "regulation", zh: "規則；規範（n.）", week: 15 },
+      { en: "enforce", zh: "執行（v.）", week: 15 },
+      { en: "distribute", zh: "分配（v.）", week: 15 },
+      { en: "violate", zh: "違反（v.）", week: 15 },
+      { en: "approach", zh: "方法（n.）；接近（v.）", week: 15 },
+      { en: "competent", zh: "有能力的（adj.）", week: 15 },
+      { en: "privately", zh: "私底下地（adv.）", week: 15 },
+      { en: "illegally", zh: "非法地（adv.；相對：legally 合法地）", week: 15 },
+      { en: "site", zh: "地點（n.）", week: 15 },
+      { en: "ensure", zh: "確保（v.）", week: 15 },
+      { en: "construction", zh: "建築（n.）", week: 15 },
+      { en: "complexity", zh: "複雜性（n.）", week: 15 },
+      { en: "accessibility", zh: "可親近性；可取得性（n.；accessible adj. 可親近的）", week: 15 },
+      { en: "potentiality", zh: "潛力；潛能（n.；potential adj./n.）", week: 15 },
+      { en: "responsibility", zh: "責任（n.）", week: 15 },
+      { en: "luxurious", zh: "豪華的（adj.）", week: 15 },
+      { en: "dilemma", zh: "兩難的困境（n.）", week: 15 },
+      { en: "elevation", zh: "高度，提升（n.；elevator n. 電梯）", week: 15 },
+      { en: "lush", zh: "翠綠的（adj.）", week: 15 },
+      { en: "spectacular", zh: "壯麗的（adj.）", week: 15 },
+      { en: "permanently", zh: "永久地（adv.）", week: 15 },
+      { en: "boost", zh: "提振（v./n.）", week: 15 },
+      { en: "inspire", zh: "鼓舞（v.）", week: 15 },
+      { en: "explode", zh: "爆炸（v.）", week: 15 },
+      { en: "absorb", zh: "全神貫注（v.）", week: 15 },
+      { en: "involve", zh: "牽涉（v.）", week: 15 },
+      { en: "detective", zh: "偵探（n.）", week: 15 },
+      { en: "acquaintance", zh: "熟識之人（n.）", week: 15 },
+      { en: "frightened", zh: "驚嚇的（adj.）", week: 16 },
+      { en: "innocent", zh: "天真的（adj.）", week: 16 },
+      { en: "ruin", zh: "毀壞（v.）", week: 16 },
+      { en: "chronic", zh: "長期的（adj.）", week: 16 },
+      { en: "intact", zh: "未受損傷的（adj.）", week: 16 },
+      { en: "strength", zh: "力氣（n.）", week: 16 },
+      { en: "request", zh: "要求（v.）", week: 16 },
+      { en: "accuse", zh: "控告（v.）", week: 16 },
+      { en: "disguise", zh: "偽裝（n.）", week: 16 },
+      { en: "rescue", zh: "救援（n.）", week: 16 },
+      { en: "decrease", zh: "減少（v.）", week: 16 },
+      { en: "vanish", zh: "消失（v.）", week: 16 },
+      { en: "cautious", zh: "謹慎的（adj.）", week: 16 },
+      { en: "extinct", zh: "絕種的（adj.）", week: 16 },
+      { en: "slaughter", zh: "殺戮（n.）", week: 16 },
+      { en: "exclusive", zh: "獨有的（adj.）", week: 16 },
+      { en: "expand", zh: "擴大（v.）", week: 16 },
+      { en: "estimate", zh: "估算（n.）", week: 16 },
+      { en: "bacteria", zh: "細菌（n.）", week: 16 },
+      { en: "victim", zh: "受害者（n.）", week: 16 },
+      { en: "boom", zh: "繁榮（n.）", week: 16 },
+      { en: "progress", zh: "進步（v.）", week: 16 },
+      { en: "promising", zh: "有前途的（adj.）", week: 16 },
+      { en: "glimpse", zh: "一瞥（n.）", week: 16 },
+      { en: "identify", zh: "識別（v.）", week: 16 },
+      { en: "anonymous", zh: "匿名的（adj.）", week: 16 },
+      { en: "edible", zh: "可食用的（adj.）", week: 16 },
+      { en: "nutrient", zh: "營養物（n.）", week: 16 },
+      { en: "resistant", zh: "抵抗……的（adj.）", week: 16 },
+      { en: "span", zh: "一段時間（n.）", week: 16 },
+    ];
+    const QUESTIONS_PER_SET = 5;
+
+    const $ = (id) => document.getElementById(id);
+    const LETTERS = ["A", "B", "C", "D"];
+
+    let currentWeek = Math.min(...WORDS.map((w) => w.week));
+    let weekWords = [];
+    let cardOrder = [];
+    let cardIndex = 0;
+    let flipped = false;
+    const MASTERY_KEY = "vocab-card-mastery-v1";
+    let mastery = {};
+    try { mastery = JSON.parse(localStorage.getItem(MASTERY_KEY) || "{}") || {}; }
+    catch (err) { mastery = {}; }
+    let runMode = "all";
+    let runQueue = [];
+    let markedThisRound = new Set();
+    let quizSet = [];
+    let quizIndex = 0;
+    let correctCount = 0;
+    let answered = false;
+
+    function shuffle(list) {
+      const arr = list.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function wordsOf(week) {
+      return WORDS.filter((w) => w.week === week);
+    }
+
+    function weekList() {
+      return [...new Set(WORDS.map((w) => w.week))].sort((a, b) => a - b);
+    }
+
+    function renderWeeks() {
+      const box = $("weeks");
+      box.innerHTML = "";
+      weekList().forEach((week) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = "第" + week + "週";
+        btn.className = week === currentWeek ? "active" : "";
+        btn.addEventListener("click", () => selectWeek(week));
+        box.appendChild(btn);
+      });
+    }
+
+    function selectWeek(week) {
+      currentWeek = week;
+      weekWords = wordsOf(week);
+      renderWeeks();
+      $("week-label").textContent = "第" + week + "週 · " + weekWords.length + " 個單字";
+      $("page-header").hidden = true;
+      $("weeks").hidden = true;
+      $("week-note").hidden = true;
+      $("study").hidden = false;
+      document.body.classList.add("in-week");
+      runMode = "all";
+      startCards(false);
+      startQuiz();
+    }
+
+    function backToWeeks() {
+      $("page-header").hidden = false;
+      $("weeks").hidden = false;
+      $("week-note").hidden = false;
+      $("study").hidden = true;
+      document.body.classList.remove("in-week");
+    }
+
+    function wordKey(word) {
+      return word.week + "::" + word.en;
+    }
+
+    function saveMastery() {
+      localStorage.setItem(MASTERY_KEY, JSON.stringify(mastery));
+    }
+
+    function pileCounts() {
+      let know = 0, unknown = 0, unset = 0;
+      weekWords.forEach((w) => {
+        const v = mastery[wordKey(w)];
+        if (v === "know") know += 1;
+        else if (v === "unknown") unknown += 1;
+        else unset += 1;
+      });
+      return { know, unknown, unset };
+    }
+
+    function wordsForRun() {
+      if (runMode === "unknown") {
+        return weekWords.filter((w) => mastery[wordKey(w)] === "unknown");
+      }
+      return weekWords.slice();
+    }
+
+    function updatePileNote() {
+      const { know, unknown, unset } = pileCounts();
+      $("pile-note").textContent =
+        "會 " + know + " · 不會 " + unknown + (unset ? " · 未分類 " + unset : "");
+      $("review-unknown").disabled = unknown === 0;
+    }
+
+    function showCardPlay() {
+      $("card-play").classList.remove("empty");
+      $("card-summary").classList.remove("show");
+    }
+
+    function showCardSummary() {
+      const { know, unknown, unset } = pileCounts();
+      $("card-play").classList.add("empty");
+      $("card-summary").classList.add("show");
+      let text = "會 " + know + " 張，不會 " + unknown + " 張";
+      if (unset) text += "，還有 " + unset + " 張未分類";
+      $("card-summary-text").textContent = text + "。";
+      $("retry-unknown").disabled = unknown === 0;
+    }
+
+    function showCard() {
+      if (!runQueue.length) {
+        showCardSummary();
+        return;
+      }
+      showCardPlay();
+      const word = runQueue[cardIndex];
+      $("card-en").textContent = word.en;
+      $("card-zh").textContent = word.zh;
+      const prefix = runMode === "unknown" ? "只刷不會 · " : "";
+      $("card-count").textContent = prefix + "第 " + (cardIndex + 1) + " / " + runQueue.length + " 張";
+      $("card-progress").style.width = ((cardIndex + 1) / runQueue.length * 100) + "%";
+      $("flashcard").classList.toggle("flipped", flipped);
+      updatePileNote();
+    }
+
+    function flipCard() {
+      flipped = !flipped;
+      $("flashcard").classList.toggle("flipped", flipped);
+    }
+
+    function startCards(reshuffle, mode) {
+      if (mode) runMode = mode;
+      runQueue = wordsForRun();
+      if (reshuffle) runQueue = shuffle(runQueue);
+      cardIndex = 0;
+      flipped = false;
+      markedThisRound = new Set();
+      if (!runQueue.length) {
+        showCardSummary();
+        return;
+      }
+      showCard();
+    }
+
+    function markCard(kind) {
+      const word = runQueue[cardIndex];
+      if (!word) return;
+      mastery[wordKey(word)] = kind;
+      saveMastery();
+      markedThisRound.add(wordKey(word));
+      if (markedThisRound.size >= runQueue.length) {
+        showCardSummary();
+        return;
+      }
+      let next = cardIndex + 1;
+      while (next < runQueue.length && markedThisRound.has(wordKey(runQueue[next]))) next += 1;
+      if (next >= runQueue.length) {
+        next = 0;
+        while (next < runQueue.length && markedThisRound.has(wordKey(runQueue[next]))) next += 1;
+      }
+      cardIndex = next;
+      flipped = false;
+      showCard();
+    }
+
+    function resetMastery() {
+      weekWords.forEach((w) => { delete mastery[wordKey(w)]; });
+      saveMastery();
+      runMode = "all";
+      startCards(false);
+    }
+
+    function startUnknownOnly() {
+      if (pileCounts().unknown === 0) return;
+      startCards(true, "unknown");
+    }
+
+    function makeOptions(word) {
+      const same = shuffle(
+        weekWords.filter((w) => w.en !== word.en).map((w) => w.zh)
+      );
+      const others = shuffle(
+        WORDS.filter((w) => w.en !== word.en && w.zh !== word.zh && !same.includes(w.zh))
+          .map((w) => w.zh)
+      );
+      const extras = [];
+      const fallback = ["練習", "記得", "句子", "意思"];
+      const pool = same.concat(others).concat(fallback);
+      for (const zh of pool) {
+        if (zh !== word.zh && !extras.includes(zh)) extras.push(zh);
+        if (extras.length === 3) break;
+      }
+      return shuffle([word.zh].concat(extras));
+    }
+
+    function renderChoices(options, correctZh) {
+      const box = $("choices");
+      box.classList.remove("shake");
+      box.innerHTML = "";
+      options.forEach((zh, i) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "choice";
+        btn.innerHTML = '<span class="mark">' + LETTERS[i] + '</span><span class="label"></span>';
+        btn.querySelector(".label").textContent = zh;
+        btn.addEventListener("click", () => pickChoice(btn, zh, correctZh));
+        box.appendChild(btn);
+      });
+    }
+
+    function showQuiz() {
+      const word = quizSet[quizIndex];
+      $("quiz-play").classList.remove("empty");
+      $("quiz-summary").classList.remove("show");
+      $("quiz-en").textContent = word.en;
+      $("quiz-word").classList.remove("pulse");
+      $("feedback").textContent = "";
+      $("feedback").className = "feedback";
+      answered = false;
+      $("next-quiz").disabled = true;
+      $("next-quiz").textContent = quizIndex === quizSet.length - 1 ? "看結果" : "下一題";
+      $("quiz-progress").textContent = "第 " + (quizIndex + 1) + " / " + quizSet.length + " 題";
+      $("quiz-score").textContent = "答對 " + correctCount;
+      $("quiz-bar").style.width = ((quizIndex + 1) / quizSet.length * 100) + "%";
+      renderChoices(makeOptions(word), word.zh);
+    }
+
+    function pickChoice(btn, zh, correctZh) {
+      if (answered) return;
+      answered = true;
+      const buttons = [...document.querySelectorAll(".choice")];
+      buttons.forEach((el) => {
+        el.disabled = true;
+        if (el.querySelector(".label").textContent === correctZh) el.classList.add("correct");
+      });
+      if (zh === correctZh) {
+        correctCount += 1;
+        $("feedback").textContent = "答對了，做得好！";
+        $("feedback").className = "feedback ok";
+        $("quiz-word").classList.add("pulse");
+      } else {
+        btn.classList.add("wrong");
+        $("feedback").textContent = "答錯了，正確是「" + correctZh + "」";
+        $("feedback").className = "feedback bad";
+        $("choices").classList.remove("shake");
+        void $("choices").offsetWidth;
+        $("choices").classList.add("shake");
+      }
+      $("quiz-score").textContent = "答對 " + correctCount;
+      $("next-quiz").disabled = false;
+    }
+
+    function finishQuiz() {
+      $("quiz-play").classList.add("empty");
+      $("quiz-summary").classList.add("show");
+      $("quiz-summary-text").textContent =
+        "第" + currentWeek + "週這一組答對 " + correctCount + "／共 " + quizSet.length + " 題";
+    }
+
+    function nextQuiz() {
+      if (!answered) return;
+      if (quizIndex < quizSet.length - 1) {
+        quizIndex += 1;
+        showQuiz();
+      } else {
+        finishQuiz();
+      }
+    }
+
+    function startQuiz() {
+      const count = Math.min(QUESTIONS_PER_SET, weekWords.length);
+      quizSet = shuffle(weekWords).slice(0, count);
+      quizIndex = 0;
+      correctCount = 0;
+      if (!quizSet.length) return;
+      showQuiz();
+    }
+
+    function switchMode(mode) {
+      const isCard = mode === "card";
+      $("tab-card").classList.toggle("active", isCard);
+      $("tab-quiz").classList.toggle("active", !isCard);
+      $("panel-card").classList.toggle("active", isCard);
+      $("panel-quiz").classList.toggle("active", !isCard);
+    }
+
+    $("tab-card").addEventListener("click", () => switchMode("card"));
+    $("tab-quiz").addEventListener("click", () => switchMode("quiz"));
+    $("flashcard").addEventListener("click", flipCard);
+    $("shuffle-card").addEventListener("click", () => startCards(true));
+    $("mark-know").addEventListener("click", () => markCard("know"));
+    $("mark-unknown").addEventListener("click", () => markCard("unknown"));
+    $("reset-cards").addEventListener("click", resetMastery);
+    $("review-unknown").addEventListener("click", startUnknownOnly);
+    $("retry-unknown").addEventListener("click", startUnknownOnly);
+    $("retry-all-cards").addEventListener("click", () => startCards(true, "all"));
+    $("next-quiz").addEventListener("click", nextQuiz);
+    $("retry-quiz").addEventListener("click", startQuiz);
+    $("back-weeks").addEventListener("click", backToWeeks);
+
+    document.addEventListener("keydown", (e) => {
+      if (!$("panel-card").classList.contains("active")) return;
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        flipCard();
+      }
+    });
+
+    renderWeeks();
+    $("week-note").textContent = "選一週開始練習";
+  </script>
+</body>
+</html>
