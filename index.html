@@ -1189,15 +1189,6 @@
       $("flashcard").classList.toggle("flipped", flipped);
     }
 
-    function countSyllables(word) {
-      const w = String(word || "").toLowerCase().replace(/[^a-z]/g, "");
-      if (!w) return 1;
-      const groups = w.match(/[aeiouy]+/g);
-      let n = groups ? groups.length : 1;
-      if (w.length > 2 && /[^aeiou]e$/.test(w) && !/(le|ye)$/.test(w) && n > 1) n -= 1;
-      return Math.max(n, 1);
-    }
-
     function pickEnglishVoice() {
       const voices = window.speechSynthesis.getVoices() || [];
       const nameOf = (v) => (v.name || "").toLowerCase();
@@ -1213,7 +1204,7 @@
       if (!word || !window.speechSynthesis) return;
       const utter = new SpeechSynthesisUtterance(word);
       utter.lang = "en-US";
-      utter.rate = countSyllables(word) >= 5 ? 0.72 : 0.9;
+      utter.rate = 0.72;
       const enVoice = pickEnglishVoice();
       if (enVoice) utter.voice = enVoice;
       if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
