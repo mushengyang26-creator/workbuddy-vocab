@@ -34,8 +34,8 @@
     <div class="chrome__brand">夜景模拟器 <em>NIGHTSCAPE</em></div>
   </header>
 
-  <!-- 左侧控制台 -->
-  <aside class="panel glass" aria-label="控制台">
+  <!-- 左侧控制台；手机默认收合，只留城市选择 -->
+  <aside class="panel glass is-collapsed" id="panel" aria-label="控制台">
     <div class="panel__head">
       <h1>控制台</h1>
       <label class="city">
@@ -46,38 +46,45 @@
         </select>
         <svg viewBox="0 0 24 24" class="chev"><path d="M6 9.5l6 6 6-6"/></svg>
       </label>
+      <button type="button" class="panel__toggle" id="panelToggle" aria-expanded="false" aria-controls="panelBody" aria-label="展开控制台">
+        <svg viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/></svg>
+      </button>
     </div>
 
-    <div class="rows">
-      <div class="row">
-        <div class="row__top"><label for="sTime">时间 Time</label><output id="vTime">70%</output></div>
-        <input id="sTime" type="range" min="0" max="100" step="1" value="70" style="--p:70%;--c:linear-gradient(90deg,#a074ff,#ff5fa2)" />
+    <div id="panelBody">
+      <div class="rows">
+        <div class="row">
+          <div class="row__top"><label for="sTime">时间 Time</label><output id="vTime">70%</output></div>
+          <input id="sTime" type="range" min="0" max="100" step="1" value="70" style="--p:70%;--c:linear-gradient(90deg,#a074ff,#ff5fa2)" />
+        </div>
+        <div class="row">
+          <div class="row__top"><label for="sFog">雾浓度 <em>Fog</em></label><output id="vFog">62%</output></div>
+          <input id="sFog" type="range" min="0" max="100" step="1" value="62" style="--p:62%;--c:linear-gradient(90deg,#cdd7e6,#cdd7e6)" />
+        </div>
+        <div class="row">
+          <div class="row__top"><label for="sNeon">霓虹强度 <em>Neon</em></label><output id="vNeon">88%</output></div>
+          <input id="sNeon" type="range" min="0" max="100" step="1" value="88" style="--p:88%;--c:linear-gradient(90deg,#ff2f95,#ff7cc6)" />
+        </div>
+        <div class="row">
+          <div class="row__top"><label for="sTraffic">车流密度 <em>Traffic</em></label><output id="vTraffic">74%</output></div>
+          <input id="sTraffic" type="range" min="0" max="100" step="1" value="74" style="--p:74%;--c:linear-gradient(90deg,#2fd8ff,#2fd8ff)" />
+        </div>
+        <div class="row">
+          <div class="row__top"><label for="sGrain">胶片颗粒 <em>Grain</em></label><output id="vGrain">35%</output></div>
+          <input id="sGrain" type="range" min="0" max="100" step="1" value="35" style="--p:35%;--c:linear-gradient(90deg,#e6dfd2,#e6dfd2)" />
+        </div>
       </div>
-      <div class="row">
-        <div class="row__top"><label for="sFog">雾浓度 <em>Fog</em></label><output id="vFog">62%</output></div>
-        <input id="sFog" type="range" min="0" max="100" step="1" value="62" style="--p:62%;--c:linear-gradient(90deg,#cdd7e6,#cdd7e6)" />
-      </div>
-      <div class="row">
-        <div class="row__top"><label for="sNeon">霓虹强度 <em>Neon</em></label><output id="vNeon">88%</output></div>
-        <input id="sNeon" type="range" min="0" max="100" step="1" value="88" style="--p:88%;--c:linear-gradient(90deg,#ff2f95,#ff7cc6)" />
-      </div>
-      <div class="row">
-        <div class="row__top"><label for="sTraffic">车流密度 <em>Traffic</em></label><output id="vTraffic">74%</output></div>
-        <input id="sTraffic" type="range" min="0" max="100" step="1" value="74" style="--p:74%;--c:linear-gradient(90deg,#2fd8ff,#2fd8ff)" />
-      </div>
-      <div class="row">
-        <div class="row__top"><label for="sGrain">胶片颗粒 <em>Grain</em></label><output id="vGrain">35%</output></div>
-        <input id="sGrain" type="range" min="0" max="100" step="1" value="35" style="--p:35%;--c:linear-gradient(90deg,#e6dfd2,#e6dfd2)" />
-      </div>
-    </div>
 
-    <div class="swatches" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="swatches" aria-hidden="true"><i></i><i></i><i></i></div>
+    </div>
   </aside>
 
   <!-- 右侧信息卡 -->
   <aside class="card glass" aria-label="当前城市">
-    <div class="card__name" id="cName">上海</div>
-    <div class="card__en" id="cEn">Shanghai, China</div>
+    <div class="card__meta">
+      <div class="card__name" id="cName">上海</div>
+      <div class="card__en" id="cEn">Shanghai, China</div>
+    </div>
     <div class="card__tags">
       <div class="tag">
         <svg viewBox="0 0 24 24" class="ico"><path d="M12 4v8"/><circle cx="12" cy="15.5" r="4"/></svg>
@@ -95,15 +102,15 @@
   <footer class="strip glass" aria-label="时间轴">
     <div class="thumbs" id="thumbs">
       <button class="thumb" data-t="0" aria-label="黄昏">
-        <img src="assets/thumb-dusk.jpg" alt="" />
+        <img src="assets/thumb-shanghai-dusk.jpg" alt="" />
         <span>黄昏</span>
       </button>
       <button class="thumb is-on" data-t="50" aria-label="晚上">
-        <img src="assets/thumb-evening.jpg" alt="" />
+        <img src="assets/thumb-shanghai-evening.jpg" alt="" />
         <span>晚上</span>
       </button>
       <button class="thumb" data-t="100" aria-label="深夜">
-        <img src="assets/thumb-latenight.jpg" alt="" />
+        <img src="assets/thumb-shanghai-latenight.jpg" alt="" />
         <span>深夜</span>
       </button>
     </div>
@@ -114,7 +121,7 @@
     </div>
   </footer>
 
-  <div class="credit">本地预览 · Local preview</div>
+  <div class="credit" id="credit">夜景模拟器 · NIGHTSCAPE</div>
 </div>
 
 <script src="js/app.js"></script>

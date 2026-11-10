@@ -66,9 +66,9 @@ button, select, input{ font:inherit; color:inherit; }
   transition: opacity .9s cubic-bezier(.4,0,.2,1);
   will-change:opacity;
 }
-#bgDusk      { background-image:url("../assets/bg-dusk.jpg"); }
-#bgEvening   { background-image:url("../assets/bg-evening.jpg"); }
-#bgLatenight { background-image:url("../assets/bg-latenight.jpg"); }
+#bgDusk      { background-image:url("../assets/shanghai-dusk.jpg"); }
+#bgEvening   { background-image:url("../assets/shanghai-evening.jpg"); }
+#bgLatenight { background-image:url("../assets/shanghai-latenight.jpg"); }
 
 /* ---------- 车流 ---------- */
 .traffic{
@@ -231,6 +231,26 @@ button, select, input{ font:inherit; color:inherit; }
   stroke-linecap:round; stroke-linejoin:round;
   pointer-events:none;
 }
+
+
+.panel__toggle{
+  display:none;
+  flex:none;
+  width:30px; height:30px;
+  margin-left:4px; padding:0; border:0;
+  border-radius:8px;
+  background:rgba(255,255,255,.08);
+  cursor:pointer;
+  align-items:center; justify-content:center;
+}
+.panel__toggle svg{
+  width:14px; height:14px;
+  fill:none; stroke:rgba(242,244,248,.85); stroke-width:2;
+  stroke-linecap:round; stroke-linejoin:round;
+  transition:transform .2s ease;
+}
+.panel:not(.is-collapsed) .panel__toggle svg{ transform:rotate(180deg); }
+.panel__toggle:focus-visible{ outline:2px solid rgba(255,255,255,.6); outline-offset:2px; }
 
 /* 滑杆行 */
 .rows{ display:flex; flex-direction:column; gap:17px; }
@@ -462,59 +482,69 @@ input[type="range"]:focus-visible::-webkit-slider-thumb{
 }
 
 @media (max-width: 860px){
-  html, body{ height:auto; }
-  body{ overflow-y:auto; overflow-x:hidden; }
+  html, body{ height:100%; }
+  body{ overflow:hidden; }
 
-  /* 手机：背景固定在屏后，内容正常流式排布 */
+  /* 手机：舞台铺满，控件叠在风景上，中间留出景色 */
   .stage{
-    position:relative;
+    position:fixed; inset:0;
+    height:100dvh;
     min-height:100dvh;
-    padding-bottom:calc(18px + env(safe-area-inset-bottom));
+    padding:0;
   }
-  .scene{ position:fixed; }
-  .chrome{ position:fixed; }
-  .vignette, .grain{ position:fixed; }
+  .scene, .vignette, .grain{ position:absolute; }
+  .chrome{ display:none; }
 
-  .chrome__brand{ display:none; }
-  .chrome__pill{ width:min(340px, 60vw); }
+  .panel__toggle{ display:flex; }
 
   .panel{
-    position:relative;
-    top:auto; left:auto; right:auto;
+    position:absolute;
+    top:calc(10px + env(safe-area-inset-top));
+    left:12px; right:12px;
     width:auto;
-    margin:62px 14px 0;
-    padding:16px 16px 12px;
-    border-radius:18px;
+    margin:0;
+    padding:12px 14px 10px;
+    border-radius:16px;
   }
-  .panel__head{ margin-bottom:14px; }
+  .panel__head{ margin-bottom:0; }
+  .panel:not(.is-collapsed) .panel__head{ margin-bottom:14px; }
+  .panel.is-collapsed #panelBody{ display:none; }
   .rows{ gap:13px; }
 
   .card{
-    position:relative;
-    top:auto; right:auto; left:auto;
+    position:absolute;
+    top:auto; right:12px; left:12px;
+    bottom:calc(148px + env(safe-area-inset-bottom));
     width:auto;
-    margin:12px 14px 0;
-    padding:14px 16px;
-    border-radius:18px;
+    margin:0;
+    padding:8px 10px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
   }
-  .card__tags{ margin-top:12px; }
+  .card__meta{ flex:0 1 auto; min-width:0; }
+  .card__name{ font-size:18px; }
+  .card__en{ margin-top:2px; font-size:9px; }
+  .card__tags{ margin-top:0; flex:1; min-width:0; }
+  .tag{ padding:6px 8px 5px; }
+  .tag b{ font-size:11.5px; }
 
   .strip{
-    position:relative;
-    left:auto; right:auto; bottom:auto;
+    position:absolute;
+    left:12px; right:12px;
+    bottom:calc(10px + env(safe-area-inset-bottom));
     width:auto;
-    margin:12px 14px 0;
-    padding:12px 12px 8px;
-    border-radius:18px;
+    margin:0;
+    padding:10px 10px 8px;
+    border-radius:16px;
   }
   .thumb span{ font-size:10.5px; left:7px; top:5px; }
   .credit{ display:none; }
 }
 
 @media (max-width: 380px){
-  .panel{ margin-left:10px; margin-right:10px; }
-  .card{ margin-left:10px; margin-right:10px; }
-  .strip{ margin-left:10px; margin-right:10px; }
+  .panel, .card, .strip{ left:8px; right:8px; }
 }
 
 @media (prefers-reduced-motion: reduce){

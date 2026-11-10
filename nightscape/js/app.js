@@ -9,9 +9,9 @@
 
   /* ---------------- 数据 ---------------- */
   const CITIES = {
-    shanghai: { cn: '上海', en: 'Shanghai, China', temp: '18°C', hum: '87%', aqi: 42, lv: '良', hue: 0,   sat: 1.00, bri: 1.00 },
-    tokyo:    { cn: '东京', en: 'Tokyo, Japan',    temp: '14°C', hum: '72%', aqi: 28, lv: '优', hue: -14, sat: 1.06, bri: 1.03 },
-    hongkong: { cn: '香港', en: 'Hong Kong, China', temp: '22°C', hum: '81%', aqi: 55, lv: '良', hue: 16,  sat: 1.18, bri: 0.97 }
+    shanghai: { cn: '上海', en: 'Shanghai, China', temp: '18°C', hum: '87%', aqi: 42, lv: '良', hue: 0, sat: 1.00, bri: 1.00, credit: '夜景模拟器 · NIGHTSCAPE' },
+    tokyo:    { cn: '东京', en: 'Tokyo, Japan',    temp: '14°C', hum: '72%', aqi: 28, lv: '优', hue: 0, sat: 1.00, bri: 1.00, credit: '照片 Wikimedia Commons' },
+    hongkong: { cn: '香港', en: 'Hong Kong, China', temp: '22°C', hum: '81%', aqi: 55, lv: '良', hue: 0, sat: 1.00, bri: 1.00, credit: '照片 Wikimedia Commons' }
   };
 
   const state = {
@@ -38,7 +38,8 @@
     cName: $('#cName'), cEn: $('#cEn'), cTemp: $('#cTemp'), cHum: $('#cHum'),
     cAir: $('#cAir'), cAirLv: $('#cAirLv'), cAirTag: $('#cAirTag'),
     thumbs: [...document.querySelectorAll('.thumb')],
-    track: $('#track'), trackFill: $('#trackFill'), trackKnob: $('#trackKnob')
+    track: $('#track'), trackFill: $('#trackFill'), trackKnob: $('#trackKnob'),
+    panel: $('#panel'), panelToggle: $('#panelToggle'), credit: $('#credit')
   };
 
   /* ---------------- 工具 ---------------- */
@@ -94,7 +95,11 @@
     [
       [el.sTime, state.time], [el.sFog, state.fog], [el.sNeon, state.neon],
       [el.sTraffic, state.traffic], [el.sGrain, state.grain]
-    ].forEach(([input, v]) => input.style.setProperty('--p', v + '%'));
+    ].forEach(([input, v]) => {
+      const n = Math.round(v);
+      if (input.value !== String(n)) input.value = n;
+      input.style.setProperty('--p', n + '%');
+    });
 
     // 时间轴
     const pct = state.time;
@@ -120,6 +125,23 @@
   }
 
   /* ---------------- 信息卡 ---------------- */
+  function applyCityImages() {
+    const k = state.city;
+    const files = [k + '-dusk.jpg', k + '-evening.jpg', k + '-latenight.jpg'];
+    el.bgs.forEach((b, i) => {
+      b.style.backgroundImage = 'url("assets/' + files[i] + '")';
+    });
+    const thumbs = [
+      'assets/thumb-' + k + '-dusk.jpg',
+      'assets/thumb-' + k + '-evening.jpg',
+      'assets/thumb-' + k + '-latenight.jpg'
+    ];
+    el.thumbs.forEach((btn, i) => {
+      const img = btn.querySelector('img');
+      if (img) img.src = thumbs[i];
+    });
+  }
+
   function renderCity() {
     const c = CITIES[state.city];
     el.cName.textContent = c.cn;
@@ -129,6 +151,8 @@
     el.cAir.textContent = 'AQI ' + c.aqi;
     el.cAirLv.textContent = c.lv;
     el.cAirTag.dataset.lv = c.lv;
+    if (el.credit) el.credit.textContent = c.credit;
+    applyCityImages();
   }
 
   /* ---------------- 车流 ---------------- */
@@ -299,6 +323,14 @@
     renderCity();
     renderBackground();
   });
+
+  if (el.panelToggle) {
+    el.panelToggle.addEventListener('click', () => {
+      const collapsed = el.panel.classList.toggle('is-collapsed');
+      el.panelToggle.setAttribute('aria-expanded', String(!collapsed));
+      el.panelToggle.setAttribute('aria-label', collapsed ? '展开控制台' : '收起控制台');
+    });
+  }
 
   el.thumbs.forEach((b) => {
     b.addEventListener('click', () => animateTime(+b.dataset.t));
