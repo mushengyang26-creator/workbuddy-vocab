@@ -127,14 +127,14 @@
   /* ---------------- 信息卡 ---------------- */
   function applyCityImages() {
     const k = state.city;
-    const files = [k + '-dusk.jpg', k + '-evening.jpg', k + '-latenight.jpg'];
+    const files = [k + '-dusk.webp', k + '-evening.webp', k + '-latenight.webp'];
     el.bgs.forEach((b, i) => {
       b.style.backgroundImage = 'url("assets/' + files[i] + '")';
     });
     const thumbs = [
-      'assets/thumb-' + k + '-dusk.jpg',
-      'assets/thumb-' + k + '-evening.jpg',
-      'assets/thumb-' + k + '-latenight.jpg'
+      'assets/thumb-' + k + '-dusk.webp',
+      'assets/thumb-' + k + '-evening.webp',
+      'assets/thumb-' + k + '-latenight.webp'
     ];
     el.thumbs.forEach((btn, i) => {
       const img = btn.querySelector('img');

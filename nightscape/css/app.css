@@ -65,9 +65,9 @@ button, select, input{ font:inherit; color:inherit; }
   will-change:opacity;
   contain:paint;
 }
-#bgDusk      { background-image:url("../assets/shanghai-dusk.jpg"); }
-#bgEvening   { background-image:url("../assets/shanghai-evening.jpg"); }
-#bgLatenight { background-image:url("../assets/shanghai-latenight.jpg"); }
+#bgDusk      { background-image:url("../assets/shanghai-dusk.webp"); }
+#bgEvening   { background-image:url("../assets/shanghai-evening.webp"); }
+#bgLatenight { background-image:url("../assets/shanghai-latenight.webp"); }
 
 /* ---------- 车流 ---------- */
 .traffic{
