@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#05060a" />
+<title>夜景模拟器 · NIGHTSCAPE</title>
+<link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <!-- 场景：三层背景交叉淡入 -->
+  <div class="scene" id="scene" aria-hidden="true">
+    <div class="bg" id="bgDusk"></div>
+    <div class="bg" id="bgEvening"></div>
+    <div class="bg" id="bgLatenight"></div>
+    <canvas class="traffic" id="traffic"></canvas>
+    <div class="fog" id="fog"></div>
+    <div class="bloom"></div>
+  </div>
+
+  <div class="grain" id="grain" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <!-- 顶栏（对齐效果图的浏览器感，纯装饰） -->
+  <header class="chrome" aria-hidden="true">
+    <div class="chrome__dots"><i></i><i></i><i></i></div>
+    <div class="chrome__pill">
+      <svg viewBox="0 0 24 24" class="ico"><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/><rect x="5.5" y="10" width="13" height="9.5" rx="2.6"/></svg>
+      <span>nightscape.app</span>
+    </div>
+    <div class="chrome__brand">夜景模拟器 <em>NIGHTSCAPE</em></div>
+  </header>
+
+  <!-- 左侧控制台 -->
+  <aside class="panel glass" aria-label="控制台">
+    <div class="panel__head">
+      <h1>控制台</h1>
+      <label class="city">
+        <select id="city" aria-label="城市">
+          <option value="shanghai">上海 Shanghai</option>
+          <option value="tokyo">东京 Tokyo</option>
+          <option value="hongkong">香港 Hong Kong</option>
+        </select>
+        <svg viewBox="0 0 24 24" class="chev"><path d="M6 9.5l6 6 6-6"/></svg>
+      </label>
+    </div>
+
+    <div class="rows">
+      <div class="row">
+        <div class="row__top"><label for="sTime">时间 Time</label><output id="vTime">70%</output></div>
+        <input id="sTime" type="range" min="0" max="100" step="1" value="70" style="--p:70%;--c:linear-gradient(90deg,#a074ff,#ff5fa2)" />
+      </div>
+      <div class="row">
+        <div class="row__top"><label for="sFog">雾浓度 <em>Fog</em></label><output id="vFog">62%</output></div>
+        <input id="sFog" type="range" min="0" max="100" step="1" value="62" style="--p:62%;--c:linear-gradient(90deg,#cdd7e6,#cdd7e6)" />
+      </div>
+      <div class="row">
+        <div class="row__top"><label for="sNeon">霓虹强度 <em>Neon</em></label><output id="vNeon">88%</output></div>
+        <input id="sNeon" type="range" min="0" max="100" step="1" value="88" style="--p:88%;--c:linear-gradient(90deg,#ff2f95,#ff7cc6)" />
+      </div>
+      <div class="row">
+        <div class="row__top"><label for="sTraffic">车流密度 <em>Traffic</em></label><output id="vTraffic">74%</output></div>
+        <input id="sTraffic" type="range" min="0" max="100" step="1" value="74" style="--p:74%;--c:linear-gradient(90deg,#2fd8ff,#2fd8ff)" />
+      </div>
+      <div class="row">
+        <div class="row__top"><label for="sGrain">胶片颗粒 <em>Grain</em></label><output id="vGrain">35%</output></div>
+        <input id="sGrain" type="range" min="0" max="100" step="1" value="35" style="--p:35%;--c:linear-gradient(90deg,#e6dfd2,#e6dfd2)" />
+      </div>
+    </div>
+
+    <div class="swatches" aria-hidden="true"><i></i><i></i><i></i></div>
+  </aside>
+
+  <!-- 右侧信息卡 -->
+  <aside class="card glass" aria-label="当前城市">
+    <div class="card__name" id="cName">上海</div>
+    <div class="card__en" id="cEn">Shanghai, China</div>
+    <div class="card__tags">
+      <div class="tag">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M12 4v8"/><circle cx="12" cy="15.5" r="4"/></svg>
+        <b id="cTemp">18°C</b><span>温度</span>
+      </div>
+      <div class="tag">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M12 3.5s6 6.2 6 10A6 6 0 0 1 6 13.5c0-3.8 6-10 6-10z"/></svg>
+        <b id="cHum">87%</b><span>湿度</span>
+      </div>
+      <div class="tag tag--air" id="cAirTag"><b id="cAir">AQI 42</b><span id="cAirLv">良</span></div>
+    </div>
+  </aside>
+
+  <!-- 底部时间轴 -->
+  <footer class="strip glass" aria-label="时间轴">
+    <div class="thumbs" id="thumbs">
+      <button class="thumb" data-t="0" aria-label="黄昏">
+        <img src="assets/thumb-dusk.jpg" alt="" />
+        <span>黄昏</span>
+      </button>
+      <button class="thumb is-on" data-t="50" aria-label="晚上">
+        <img src="assets/thumb-evening.jpg" alt="" />
+        <span>晚上</span>
+      </button>
+      <button class="thumb" data-t="100" aria-label="深夜">
+        <img src="assets/thumb-latenight.jpg" alt="" />
+        <span>深夜</span>
+      </button>
+    </div>
+    <div class="track" id="track" role="slider" tabindex="0" aria-label="时间轴" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70">
+      <div class="track__rail"></div>
+      <div class="track__fill" id="trackFill"></div>
+      <div class="track__knob" id="trackKnob"></div>
+    </div>
+  </footer>
+
+  <div class="credit">本地预览 · Local preview</div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
