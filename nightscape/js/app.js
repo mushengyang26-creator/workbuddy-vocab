@@ -58,7 +58,9 @@
   function renderBackground() {
     const w = layerWeights(state.time);
     el.bgs.forEach((b, i) => {
-      b.style.opacity = w[i].toFixed(3);
+      const o = w[i];
+      b.style.opacity = o.toFixed(3);
+      b.style.visibility = o < 0.012 ? 'hidden' : 'visible';
     });
 
     const c = CITIES[state.city];
@@ -66,15 +68,13 @@
     const t = state.time / 100;
 
     // 霓虹强度驱动饱和/对比；时间做极轻微的明暗与色温微调；城市再叠一层
-    const sat  = (0.82 + n * 0.58) * c.sat;
-    const con  = (0.98 + n * 0.26);
-    const bri  = (1.05 - t * 0.12) * c.bri;
-    const hue  = c.hue + (t - 0.5) * 14;
+    const sat  = (0.88 + n * 0.42) * c.sat;
+    const con  = (1.00 + n * 0.16);
+    const bri  = (1.03 - t * 0.08) * c.bri;
 
     root.style.setProperty('--sat', sat.toFixed(3));
     root.style.setProperty('--con', con.toFixed(3));
     root.style.setProperty('--bri', bri.toFixed(3));
-    root.style.setProperty('--hue', hue.toFixed(1) + 'deg');
     root.style.setProperty('--neon', n.toFixed(3));
   }
 
@@ -174,7 +174,7 @@
   ];
 
   function resizeCanvas() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = 1;
     const w = innerWidth, h = innerHeight;
     tc.width = Math.floor(w * dpr);
     tc.height = Math.floor(h * dpr);
@@ -201,7 +201,7 @@
   let seeded = false;
 
   function ensureTrails() {
-    const target = Math.round(3 + (state.traffic / 100) * 27);
+    const target = Math.round(2 + (state.traffic / 100) * 16);
     if (trails.length > target) {
       trails.length = target;
     } else {
@@ -214,18 +214,22 @@
 
   let last = 0;
   function frame(ts) {
-    const dt = last ? Math.min((ts - last) / 1000, 0.05) : 0.016;
+    raf = requestAnimationFrame(frame);
+    const dt = last ? Math.min((ts - last) / 1000, 0.05) : 0.033;
+    if (last && ts - last < 33) return; // 约 30fps，减轻电脑负担
     last = ts;
+    if (state.traffic < 2) {
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      return;
+    }
 
     const W = innerWidth, H = innerHeight;
     ctx.clearRect(0, 0, W, H);
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    // 让光轨顺着街区的斜向走，而不是横切画面
     ctx.translate(W * 0.5, H * 0.85);
     ctx.rotate(-0.22);
     ctx.translate(-W * 0.5, -H * 0.85);
-    ctx.filter = 'blur(3px)';
 
     ensureTrails();
 
@@ -235,27 +239,28 @@
       if (x2 > W + 40) { Object.assign(t, spawn(t.road)); continue; }
 
       const g = ctx.createLinearGradient(t.x, t.y, x2, t.y);
-      g.addColorStop(0, hexA(t.c, Math.min(0.40, t.a * 1.1)));
-      g.addColorStop(0.45, hexA(t.c, Math.min(0.20, t.a * 0.5)));
+      g.addColorStop(0, hexA(t.c, Math.min(0.46, t.a * 1.15)));
+      g.addColorStop(0.45, hexA(t.c, Math.min(0.22, t.a * 0.55)));
       g.addColorStop(1, hexA(t.c, 0));
 
-      ctx.strokeStyle = g;
-      ctx.lineWidth = t.w;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(t.x, t.y);
       ctx.lineTo(x2, t.y);
+      ctx.strokeStyle = hexA(t.c, Math.min(0.18, t.a * 0.45));
+      ctx.lineWidth = t.w * 2.4;
+      ctx.stroke();
+      ctx.strokeStyle = g;
+      ctx.lineWidth = t.w;
       ctx.stroke();
 
-      // 头部亮点
-      ctx.fillStyle = hexA(t.c, Math.min(0.32, t.a * 0.9));
+      ctx.fillStyle = hexA(t.c, Math.min(0.36, t.a * 0.95));
       ctx.beginPath();
-      ctx.arc(t.x, t.y, t.w * 0.6, 0, Math.PI * 2);
+      ctx.arc(t.x, t.y, t.w * 0.55, 0, Math.PI * 2);
       ctx.fill();
     }
 
     ctx.restore();
-    raf = requestAnimationFrame(frame);
   }
 
   function hexA(hex, a) {

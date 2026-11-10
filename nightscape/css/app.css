@@ -52,19 +52,18 @@ button, select, input{ font:inherit; color:inherit; }
 /* ---------- 场景 & 背景 ---------- */
 .scene{
   position:absolute; inset:0;
-  filter: brightness(var(--bri)) saturate(var(--sat))
-          contrast(var(--con)) hue-rotate(var(--hue));
-  transition: filter .45s ease;
+  filter: brightness(var(--bri)) saturate(var(--sat)) contrast(var(--con));
+  transition: filter .35s ease;
 }
 .bg{
-  position:absolute; inset:-2%;
+  position:absolute; inset:0;
   background-size:cover;
   background-position:center 46%;
   background-repeat:no-repeat;
   opacity:0;
-  transform:scale(1.04);
-  transition: opacity .9s cubic-bezier(.4,0,.2,1);
+  transition: opacity .6s cubic-bezier(.4,0,.2,1);
   will-change:opacity;
+  contain:paint;
 }
 #bgDusk      { background-image:url("../assets/shanghai-dusk.jpg"); }
 #bgEvening   { background-image:url("../assets/shanghai-evening.jpg"); }
@@ -97,7 +96,6 @@ button, select, input{ font:inherit; color:inherit; }
     radial-gradient(30% 16% at 26% 58%, rgba(255,255,255,.13), transparent 72%),
     radial-gradient(24% 13% at 72% 46%, rgba(255,255,255,.10), transparent 72%),
     radial-gradient(38% 18% at 54% 78%, rgba(255,255,255,.12), transparent 74%);
-  filter:blur(30px);
   animation:drift 34s ease-in-out infinite alternate;
 }
 @keyframes drift{
@@ -140,8 +138,8 @@ button, select, input{ font:inherit; color:inherit; }
   background:var(--glass-bg);
   border:1px solid var(--glass-bd);
   box-shadow: var(--glass-shadow), var(--glass-inner);
-  -webkit-backdrop-filter: blur(26px) saturate(150%);
-  backdrop-filter: blur(26px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(130%);
+  backdrop-filter: blur(12px) saturate(130%);
   color:var(--ink);
 }
 
@@ -496,6 +494,10 @@ input[type="range"]:focus-visible::-webkit-slider-thumb{
   .chrome{ display:none; }
 
   .panel__toggle{ display:flex; }
+  .glass{
+    -webkit-backdrop-filter: blur(8px) saturate(120%);
+    backdrop-filter: blur(8px) saturate(120%);
+  }
 
   .panel{
     position:absolute;
