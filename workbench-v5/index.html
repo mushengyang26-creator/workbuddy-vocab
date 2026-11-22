@@ -609,7 +609,7 @@
       margin-top:0;
       flex-wrap:wrap;
     }
-    .filters button{padding:10px 4px;min-height:44px;}
+    .filters button{padding:10px 12px;min-height:44px;min-width:44px;box-sizing:border-box;}
     .filters button[aria-pressed="true"]::before{display:none;}
     .filters button[aria-pressed="true"]{
       box-shadow:inset 0 -1.5px 0 var(--pine);
@@ -638,7 +638,7 @@
     .timeline-kicker p{white-space:normal;}
     .timeline-scroll{
       margin:0;
-      padding-bottom:6px;
+      padding:0 12px 6px;
       width:100%;
       max-width:100%;
       min-width:0;
@@ -686,7 +686,7 @@
       border-radius:16px 16px 0 0;
       z-index:25;
       transform:translateY(100%);
-      transition:transform .36s cubic-bezier(.22,.61,.36,1);
+      transition:transform .3s cubic-bezier(.22,.61,.36,1);
       pointer-events:none;
       box-shadow:0 -8px 28px rgba(28,25,20,.1);
     }
@@ -698,14 +698,15 @@
     .time-input, .note-input, #newTitle{min-height:44px;}
     .hint{display:none;}
     .actions{opacity:1;}
-    .actions button{min-height:44px;padding:10px 8px;}
-    .list, .empty{padding-left:22px;padding-right:22px;}
+    .actions button{min-height:44px;min-width:44px;padding:10px 12px;box-sizing:border-box;}
+    .list, .empty{padding-left:22px;padding-right:80px;}
     .check{
       width:22px;height:22px;
       padding:11px;
       margin:-9px 0 0 -11px;
       box-sizing:content-box;
       background-clip:padding-box;
+      transition:none;
     }
     .item{grid-template-columns:44px minmax(0,1fr) auto;}
     .title{overflow-wrap:anywhere;}
@@ -972,6 +973,51 @@
   }
   function placeToast(){ syncComposerSpace(); }
 
+  var PLACEHOLDER_DESKTOP = "寫下一件要做的事，按 Enter 加入";
+  var PLACEHOLDER_MOBILE = "寫下一件要做的事";
+  function syncPlaceholder(){
+    var input = document.getElementById("newTitle");
+    if(!input) return;
+    input.placeholder = isMobile() ? PLACEHOLDER_MOBILE : PLACEHOLDER_DESKTOP;
+  }
+
+  function getVV(){ return window.__wbFakeVV || window.visualViewport; }
+  function keyboardInset(){
+    var vv = getVV();
+    if(!vv) return 0;
+    return Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+  }
+  function syncSheetBottom(){
+    var form = document.getElementById("composer");
+    if(!form) return;
+    if(isMobile() && sheetOpen()){
+      form.style.bottom = keyboardInset() + "px";
+    }else{
+      form.style.bottom = "";
+    }
+  }
+  var vvBound = false;
+  function onVVChange(){ syncSheetBottom(); syncComposerSpace(); }
+  function unbindVV(){
+    var vv = getVV();
+    if(!vvBound) return;
+    if(vv && vv.removeEventListener){
+      vv.removeEventListener("resize", onVVChange);
+      vv.removeEventListener("scroll", onVVChange);
+    }
+    vvBound = false;
+  }
+  function bindVV(){
+    unbindVV();
+    var vv = getVV();
+    if(!vv || !vv.addEventListener) return;
+    vv.addEventListener("resize", onVVChange);
+    vv.addEventListener("scroll", onVVChange);
+    vvBound = true;
+  }
+  window.__wbSyncSheetBottom = syncSheetBottom;
+  window.__wbKeyboardInset = keyboardInset;
+
   var focusTimer = null;
   function openComposer(){
     if(!isMobile()) return;
@@ -984,11 +1030,14 @@
     form.removeAttribute("aria-hidden");
     document.body.classList.add("sheet-open");
     fab.setAttribute("aria-expanded","true");
+    bindVV();
+    syncSheetBottom();
     syncComposerSpace();
+    syncPlaceholder();
     clearTimeout(focusTimer);
     var focus = function(){ var t=document.getElementById("newTitle"); if(t) t.focus(); };
     if(reduceMotion()) focus();
-    else focusTimer = setTimeout(focus, 360);
+    else focusTimer = setTimeout(focus, 300);
   }
   function closeComposer(){
     var form = document.getElementById("composer");
@@ -1005,6 +1054,8 @@
     document.body.classList.remove("sheet-open");
     if(fab) fab.setAttribute("aria-expanded","false");
     clearTimeout(focusTimer);
+    unbindVV();
+    syncSheetBottom();
     syncComposerSpace();
   }
   window.__wbOpenComposer = openComposer;
@@ -1029,6 +1080,7 @@
   }
 
   function nowMinutes(){
+    if(typeof window.__wbFakeNowMin === "number") return window.__wbFakeNowMin;
     var parts = new Intl.DateTimeFormat("en-GB", {
       timeZone:"Asia/Shanghai",
       hour:"2-digit", minute:"2-digit", hourCycle:"h23"
@@ -1190,15 +1242,46 @@
     if(events.length) lab.innerHTML = labels;
 
     var scroller = document.getElementById("timelineScroll");
-    if(scroller && scroller.scrollWidth > scroller.clientWidth + 8 && nowInRange){
-      var nowX = (nowPct/100) * plotW;
-      if(nowX > scroller.clientWidth - 32){
-        var maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
-        var trailing = 160;
-        scroller.scrollLeft = Math.min(maxScroll, Math.max(0, nowX - scroller.clientWidth + trailing));
+    if(scroller && scroller.scrollWidth > scroller.clientWidth + 8){
+      if(nowInRange){
+        var nowX = (nowPct/100) * plotW;
+        if(nowX > scroller.clientWidth - 32){
+          var maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+          var trailing = 160;
+          scroller.scrollLeft = Math.min(maxScroll, Math.max(0, nowX - scroller.clientWidth + trailing));
+        }else{
+          scroller.scrollLeft = 0;
+        }
       }
     }
+    requestAnimationFrame(function(){ ensureLeftmostHourVisible(); });
   }
+
+  function leftmostHourClip(){
+    var scroller = document.getElementById("timelineScroll");
+    if(!scroller) return {clipped:false};
+    var sr = scroller.getBoundingClientRect();
+    var hit = null;
+    Array.prototype.forEach.call(scroller.querySelectorAll(".hour"), function(h){
+      var r = h.getBoundingClientRect();
+      if(r.right <= sr.left + 0.5 || r.left >= sr.right - 0.5) return;
+      if(!hit || r.left < hit.left) hit = {text:(h.textContent||"").trim(), left:r.left, right:r.right};
+    });
+    if(!hit) return {clipped:false, scrollerLeft:sr.left};
+    var clipPx = Math.max(0, sr.left - hit.left);
+    return {clipped: clipPx > 0.5, clipPx:clipPx, text:hit.text, hourLeft:hit.left, scrollerLeft:sr.left};
+  }
+  function ensureLeftmostHourVisible(){
+    var scroller = document.getElementById("timelineScroll");
+    if(!scroller) return;
+    var info = leftmostHourClip();
+    if(info.clipped){
+      scroller.scrollLeft = Math.max(0, scroller.scrollLeft - Math.ceil(info.clipPx + 1));
+    }
+    return leftmostHourClip();
+  }
+  window.__wbLeftmostHourClip = leftmostHourClip;
+  window.__wbEnsureLeftmostHour = ensureLeftmostHourVisible;
 
   function renderList(){
     var items = getItems();
@@ -1474,16 +1557,23 @@
     else openComposer();
   });
   document.getElementById("composerBackdrop").addEventListener("click", function(){ closeComposer(); });
+  document.getElementById("timelineScroll").addEventListener("scroll", function(){
+    if(!isMobile()) return;
+    clearTimeout(ensureLeftmostHourVisible._t);
+    ensureLeftmostHourVisible._t = setTimeout(ensureLeftmostHourVisible, 80);
+  }, {passive:true});
   window.addEventListener("resize", function(){
     if(!isMobile() && sheetOpen()) closeComposer();
     renderTimeline();
     syncComposerSpace();
+    syncPlaceholder();
   });
   if(window.ResizeObserver){
     var composerEl = document.getElementById("composer");
     if(composerEl) new ResizeObserver(function(){ syncComposerSpace(); }).observe(composerEl);
   }
   if(isMobile()) document.getElementById("composer").setAttribute("aria-hidden","true");
+  syncPlaceholder();
   syncComposerSpace();
 
   window.__wbParseHM = parseHM;
