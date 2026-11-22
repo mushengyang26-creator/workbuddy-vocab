@@ -699,7 +699,35 @@
     .hint{display:none;}
     .actions{opacity:1;}
     .actions button{min-height:44px;min-width:44px;padding:10px 12px;box-sizing:border-box;}
-    .list, .empty{padding-left:22px;padding-right:80px;}
+    .list{padding-left:22px;padding-right:80px;}
+    .empty{padding:8px 80px 16px 22px;}
+    .empty strong{font-size:20px;margin-bottom:4px;}
+    .timeline.is-empty{min-height:0;}
+    .timeline.is-empty .timeline-plot{min-height:0;}
+    .timeline.is-empty .timeline-labels{min-height:0 !important;padding-top:0;}
+    .timeline.is-empty .timeline-empty{display:none;}
+    .item-note-row{align-items:flex-start;}
+    .item-note-row label{
+      display:flex;
+      align-items:flex-start;
+      flex:1;
+      min-width:0;
+      width:100%;
+    }
+    .item-note-row .note-input{
+      display:block;
+      flex:1;
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      min-height:44px;
+      resize:none;
+      overflow:hidden;
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+      line-height:1.45;
+    }
     .check{
       width:22px;height:22px;
       padding:11px;
@@ -809,7 +837,7 @@
       <ul class="list" id="list"></ul>
       <div class="empty" id="empty" hidden>
         <strong>案上無一物</strong>
-        這天還沒有要做的事。<span class="empty-hint-desktop">從上面那一行寫下第一件吧。</span><span class="empty-hint-mobile">點右下角的加號寫下第一件吧。</span>
+        這天還沒有要做的事。<span class="empty-hint-desktop">從上面那一行寫下第一件吧。</span><span class="empty-hint-mobile">點＋新增。</span>
       </div>
     </main>
     <aside class="aside" aria-label="今日概況" id="aside">
@@ -1252,36 +1280,124 @@
         }else{
           scroller.scrollLeft = 0;
         }
+      }else{
+        scroller.scrollLeft = 0;
       }
     }
+    if(!events.length) root.classList.add("is-empty");
+    else root.classList.remove("is-empty");
     requestAnimationFrame(function(){ ensureLeftmostHourVisible(); });
   }
 
   function leftmostHourClip(){
+    return timelineEdgeClip();
+  }
+  function timelineEdgeClip(){
     var scroller = document.getElementById("timelineScroll");
-    if(!scroller) return {clipped:false};
+    if(!scroller) return {clipped:false, clipPx:0, items:[]};
     var sr = scroller.getBoundingClientRect();
-    var hit = null;
-    Array.prototype.forEach.call(scroller.querySelectorAll(".hour"), function(h){
-      var r = h.getBoundingClientRect();
-      if(r.right <= sr.left + 0.5 || r.left >= sr.right - 0.5) return;
-      if(!hit || r.left < hit.left) hit = {text:(h.textContent||"").trim(), left:r.left, right:r.right};
+    var items = [];
+    function collect(sel, kind){
+      Array.prototype.forEach.call(scroller.querySelectorAll(sel), function(el){
+        if(el.getAttribute && el.getAttribute("data-measure")) return;
+        if(getComputedStyle(el).visibility==="hidden") return;
+        var r = el.getBoundingClientRect();
+        if(r.right <= sr.left + 0.5 || r.left >= sr.right - 0.5) return;
+        var clipLeft = Math.max(0, sr.left - r.left);
+        var clipRight = Math.max(0, r.right - sr.right);
+        items.push({
+          kind: kind,
+          text: (el.textContent||"").replace(/\s+/g," ").trim(),
+          left: r.left, right: r.right,
+          clipLeft: clipLeft, clipRight: clipRight,
+          clipped: clipLeft > 0.5 || clipRight > 0.5
+        });
+      });
+    }
+    collect(".hour", "hour");
+    collect(".t-label", "label");
+    var maxLeft = 0, maxRight = 0;
+    var leftItem = null, rightItem = null;
+    items.forEach(function(x){
+      if(x.clipLeft > maxLeft){ maxLeft = x.clipLeft; leftItem = x; }
+      if(x.clipRight > maxRight){ maxRight = x.clipRight; rightItem = x; }
     });
-    if(!hit) return {clipped:false, scrollerLeft:sr.left};
-    var clipPx = Math.max(0, sr.left - hit.left);
-    return {clipped: clipPx > 0.5, clipPx:clipPx, text:hit.text, hourLeft:hit.left, scrollerLeft:sr.left};
+    return {
+      clipped: maxLeft > 0.5,
+      clipPx: maxLeft,
+      clipLeft: maxLeft,
+      clipRight: maxRight,
+      text: leftItem ? leftItem.text : (items[0] && items[0].text),
+      hourLeft: leftItem ? leftItem.left : undefined,
+      scrollerLeft: sr.left,
+      scrollerRight: sr.right,
+      items: items
+    };
   }
   function ensureLeftmostHourVisible(){
     var scroller = document.getElementById("timelineScroll");
     if(!scroller) return;
-    var info = leftmostHourClip();
-    if(info.clipped){
-      scroller.scrollLeft = Math.max(0, scroller.scrollLeft - Math.ceil(info.clipPx + 1));
+    Array.prototype.forEach.call(scroller.querySelectorAll(".t-label"), function(el){ el.style.visibility = ""; });
+    var maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+    var info = timelineEdgeClip();
+    var guard = 0;
+    while(guard++ < 16){
+      if(info.clipLeft > 0.5){
+        scroller.scrollLeft = Math.max(0, scroller.scrollLeft - Math.ceil(info.clipLeft + 1));
+        info = timelineEdgeClip();
+        continue;
+      }
+      if(info.clipRight > 0.5){
+        var prev = scroller.scrollLeft;
+        scroller.scrollLeft = Math.min(maxScroll, scroller.scrollLeft + Math.ceil(info.clipRight + 1));
+        var after = timelineEdgeClip();
+        if(after.clipLeft > 0.5){
+          var leftItems = after.items.slice().sort(function(a,b){ return a.left-b.left; });
+          var leftmost = leftItems[0];
+          scroller.scrollLeft = prev;
+          if(leftmost){
+            var sr = scroller.getBoundingClientRect();
+            var push = Math.ceil(leftmost.right - sr.left + 1);
+            scroller.scrollLeft = Math.min(maxScroll, prev + Math.max(push, 1));
+          }
+          after = timelineEdgeClip();
+          if(after.clipLeft > 0.5){
+            scroller.scrollLeft = prev;
+            after = timelineEdgeClip();
+            break;
+          }
+        }
+        if(scroller.scrollLeft === prev) break;
+        info = after;
+        continue;
+      }
+      break;
     }
-    return leftmostHourClip();
+    Array.prototype.forEach.call(scroller.querySelectorAll(".t-label"), function(el){
+      var sr = scroller.getBoundingClientRect();
+      var r = el.getBoundingClientRect();
+      var intersects = r.right > sr.left + 0.5 && r.left < sr.right - 0.5;
+      var clipped = intersects && (r.left < sr.left - 0.5 || r.right > sr.right + 0.5);
+      el.style.visibility = clipped ? "hidden" : "";
+    });
+    return timelineEdgeClip();
   }
   window.__wbLeftmostHourClip = leftmostHourClip;
+  window.__wbTimelineEdgeClip = timelineEdgeClip;
   window.__wbEnsureLeftmostHour = ensureLeftmostHourVisible;
+
+  function autosizeNote(el){
+    if(!el || el.tagName !== "TEXTAREA") return;
+    el.style.height = "auto";
+    el.style.height = Math.max(44, el.scrollHeight) + "px";
+  }
+  function autosizeNotes(){
+    if(!isMobile()) return;
+    Array.prototype.forEach.call(document.querySelectorAll(".item-note-row textarea.note-input"), autosizeNote);
+    requestAnimationFrame(function(){
+      Array.prototype.forEach.call(document.querySelectorAll(".item-note-row textarea.note-input"), autosizeNote);
+    });
+  }
 
   function renderList(){
     var items = getItems();
@@ -1302,7 +1418,7 @@
       empty.hidden = false;
       if(filter==="done") empty.innerHTML = "<strong>還沒有劃掉的事</strong>完成一項之後，會出現在這裡。";
       else if(filter==="open") empty.innerHTML = "<strong>都做完了</strong>未完成的清單是空的。";
-      else empty.innerHTML = "<strong>案上無一物</strong>這天還沒有要做的事。<span class=\"empty-hint-desktop\">從上面那一行寫下第一件吧。</span><span class=\"empty-hint-mobile\">點右下角的加號寫下第一件吧。</span>";
+      else empty.innerHTML = "<strong>案上無一物</strong>這天還沒有要做的事。<span class=\"empty-hint-desktop\">從上面那一行寫下第一件吧。</span><span class=\"empty-hint-mobile\">點＋新增。</span>";
       return;
     }
     empty.hidden = true;
@@ -1318,7 +1434,11 @@
         "</button>" +
         "<div class='body'>" +
           '<input class="title" value="'+escapeHtml(t.title)+'" maxlength="200" aria-label="編輯待辦" />' +
-          '<div class="item-note-row"><label>備註 <input class="note-input" maxlength="200" placeholder="選填" aria-label="備註" value="'+escapeHtml(t.note||"")+'" /></label></div>' +
+          '<div class="item-note-row"><label>備註 '+
+            (isMobile()
+              ? '<textarea class="note-input" rows="1" maxlength="200" placeholder="選填" aria-label="備註">'+escapeHtml(t.note||"")+'</textarea>'
+              : '<input class="note-input" maxlength="200" placeholder="選填" aria-label="備註" value="'+escapeHtml(t.note||"")+'" />')+
+            '</label></div>' +
           '<div class="item-time">'+
             '<label>開始 <input class="time-input time-start" inputmode="numeric" placeholder="HH:MM" maxlength="5" spellcheck="false" aria-label="開始時間，24 小時制" value="'+escapeHtml(t.start||"")+'" /></label>'+
             '<label>結束 <input class="time-input time-end" inputmode="numeric" placeholder="HH:MM" maxlength="5" spellcheck="false" aria-label="結束時間，24 小時制" value="'+escapeHtml(t.end||"")+'" /></label>'+
@@ -1351,6 +1471,7 @@
     fmtDate();
     renderTimeline();
     renderList();
+    autosizeNotes();
     placeToast();
   }
 
@@ -1443,6 +1564,9 @@
     if(changed) e.preventDefault();
   });
 
+  document.getElementById("list").addEventListener("input", function(e){
+    if(e.target.classList.contains("note-input")) autosizeNote(e.target);
+  });
   document.getElementById("list").addEventListener("blur", function(e){
     if(e.target.classList.contains("time-input")) normalizeTimeField(e.target);
   }, true);
