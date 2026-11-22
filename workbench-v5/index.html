@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>案頭 · 待辦工作台（設計稿）</title>
+<style>
+  :root{
+    --paper:#efe8dc;
+    --ivory:#faf6ee;
+    --ink:#1c1914;
+    --muted:#5c564c;
+    --line:#e4dcd0;
+    --line-strong:#d3cbbd;
+    --pine:#215745;
+    --pine-soft:#dce8e2;
+    --lacquer:#9e3d32;
+    --done:#5c564c;
+    --done-note:#5c564c;
+    --done-time:#5c564c;
+    --placeholder:#5c564c;
+    --safe-b:env(safe-area-inset-bottom, 0px);
+    --safe-t:env(safe-area-inset-top, 0px);
+    --toast-bottom:calc(24px + var(--safe-b));
+    --lane-h:24px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Hiragino Sans CNS","Noto Sans TC","Segoe UI",sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  button,input,textarea,select{font:inherit;color:inherit;}
+  button{background:none;border:0;padding:0;cursor:pointer;}
+  [hidden]{display:none !important;}
+
+  .app{
+    min-height:100%;
+    display:grid;
+    grid-template-columns:minmax(220px,280px) minmax(0,1fr);
+    width:100%;
+    max-width:none;
+    margin:0;
+    padding:0 8px;
+  }
+
+  /* ---------- rail / aside (base first, then wide override) ---------- */
+  .rail{
+    padding:calc(36px + var(--safe-t)) 32px 32px 36px;
+    border-right:1px solid var(--line-strong);
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+    min-height:100vh;
+    position:sticky;
+    top:0;
+  }
+  .aside{
+    display:none;
+    padding:calc(36px + var(--safe-t)) 36px 32px 32px;
+    flex-direction:column;
+    gap:28px;
+    min-height:100vh;
+    position:sticky;
+    top:0;
+  }
+  @media (min-width:1200px){
+    .app{
+      grid-template-columns:minmax(240px,280px) minmax(0,1fr) minmax(220px,280px);
+      padding:0 28px;
+    }
+    .rail{border-right:1px solid var(--line-strong);}
+    .aside{
+      display:flex;
+      border-left:1px solid var(--line-strong);
+    }
+    .rail .rail-progress-wrap,
+    .rail .rail-foot{display:none;}
+  }
+
+  .aside-kicker{
+    margin:0;
+    font-family:"Iowan Old Style","Songti TC","Songti SC","STSong","Times New Roman",serif;
+    font-weight:600;
+    font-size:20px;
+    letter-spacing:.08em;
+  }
+  .aside .rail-progress-wrap{margin-top:4px;}
+  .aside .rail-foot{margin-top:auto;}
+  .eyebrow{
+    margin:0;
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .wordmark{
+    margin:8px 0 0;
+    font-family:"Iowan Old Style","Songti TC","Songti SC","STSong","Noto Serif CJK TC","Times New Roman",serif;
+    font-weight:600;
+    font-size:52px;
+    line-height:.9;
+    letter-spacing:.04em;
+  }
+  .wordmark i{
+    font-style:normal;
+    display:block;
+    width:36px;height:2px;
+    background:var(--pine);
+    margin:14px 0 0;
+    border-radius:1px;
+  }
+  .date-block{margin:0;}
+  .date-nav{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .day-btn{
+    width:28px;height:28px;
+    flex:0 0 auto;
+    color:var(--ink);
+    font-size:20px;
+    line-height:1;
+    border-radius:4px;
+  }
+  .date{
+    margin:0;
+    flex:1 1 auto;
+    font-size:15px;
+    color:var(--ink);
+    min-width:0;
+    text-align:center;
+    white-space:nowrap;
+  }
+  .date-sub{
+    margin:6px 0 0;
+    color:var(--muted);
+    font-size:13px;
+    font-weight:400;
+    line-height:1.45;
+  }
+  .go-today{
+    margin-top:8px;
+    font-size:12px;
+    color:var(--ink);
+    text-decoration:underline;
+    text-underline-offset:3px;
+  }
+  .progress{margin:0;}
+  .progress-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    font-size:13px;
+  }
+  .progress-top strong{font-weight:650;font-size:22px;letter-spacing:.01em;}
+  .progress-top span{color:var(--muted);}
+  .bar{
+    margin-top:10px;
+    height:2px;
+    background:var(--line-strong);
+    border-radius:1px;
+    overflow:hidden;
+  }
+  .bar > i{
+    display:block;height:100%;width:0;
+    background:var(--pine);
+    border-radius:1px;
+    transition:width .25s ease;
+  }
+
+  .filters{display:flex;flex-direction:column;gap:2px;margin-top:4px;}
+  .filters button{
+    text-align:left;
+    padding:8px 0;
+    color:var(--muted);
+    font-size:14px;
+    border-bottom:1px solid transparent;
+    border-radius:2px;
+  }
+  .filters button[aria-pressed="true"]{
+    color:var(--ink);
+    font-weight:600;
+  }
+  .filters button[aria-pressed="true"]::before{
+    content:"";
+    display:inline-block;
+    width:14px;height:1.5px;
+    background:var(--pine);
+    margin-right:8px;
+    vertical-align:middle;
+    margin-top:-2px;
+  }
+
+  .rail-foot{
+    margin-top:auto;
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.6;
+  }
+  .rail-foot button, .reset-demo{
+    color:var(--ink);
+    text-decoration:underline;
+    text-underline-offset:3px;
+    font-size:12px;
+  }
+  .reset-mobile{display:none;}
+
+  /* ---------- main ---------- */
+  .main{
+    padding:calc(28px + var(--safe-t)) 24px 64px 24px;
+    min-width:0;
+  }
+  @media (min-width:1200px) and (max-width:1400px){
+    .main{padding-left:16px;padding-right:16px;}
+  }
+
+  /* ---------- timeline ---------- */
+  .timeline-section{margin:0 0 26px;}
+  .timeline-kicker{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    margin:0 0 10px;
+  }
+  .timeline-kicker h2{
+    margin:0;
+    font-family:"Iowan Old Style","Songti TC","Songti SC","STSong","Times New Roman",serif;
+    font-weight:600;
+    font-size:20px;
+    letter-spacing:.08em;
+  }
+  .timeline-kicker p{
+    margin:0;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .timeline-scroll{
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding-bottom:2px;
+    scrollbar-width:thin;
+    scrollbar-color:var(--line-strong) transparent;
+  }
+  .timeline{
+    position:relative;
+    width:100%;
+    min-width:0;
+    min-height:96px;
+  }
+  .timeline-plot{
+    position:relative;
+    width:calc(100% - 148px);
+    min-height:96px;
+  }
+  .timeline-hours{
+    position:relative;
+    height:22px;
+  }
+  .hour{
+    position:absolute;
+    top:0;
+    font-size:10px;
+    letter-spacing:.04em;
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+  }
+  .hour[data-edge="start"]{transform:none;}
+  .hour[data-edge="end"]{transform:translateX(-100%);}
+  .hour:not([data-edge]){transform:translateX(-50%);}
+  .hour i{
+    position:absolute;
+    left:50%;
+    top:16px;
+    width:1px;height:6px;
+    background:var(--line-strong);
+    display:block;
+  }
+  .hour[data-edge="start"] i{left:0;}
+  .hour[data-edge="end"] i{left:auto;right:0;}
+  .timeline-axis{
+    position:relative;
+    height:8px;
+    border-top:1px solid var(--line-strong);
+    border-bottom:1px solid var(--line);
+    background:rgba(255,255,255,.28);
+  }
+  .t-span{
+    position:absolute;
+    top:0;height:8px;
+    background:var(--pine);
+    opacity:.78;
+  }
+  .t-span.is-done{background:#5c564c;opacity:.45;}
+  .now-line{
+    position:absolute;
+    top:22px;bottom:0;
+    width:1px;
+    background:var(--pine);
+    z-index:4;
+    pointer-events:none;
+  }
+  .now-line b{
+    position:absolute;
+    top:-2px;
+    left:6px;
+    font-size:10px;
+    font-weight:600;
+    color:var(--pine);
+    letter-spacing:.1em;
+    white-space:nowrap;
+  }
+  .now-line.near-end b{left:auto;right:6px;}
+  .timeline-labels{position:relative;min-height:56px;padding-top:8px;}
+  .t-label{
+    position:absolute;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    max-width:148px;
+    height:var(--lane-h);
+    padding:0;
+    font-size:12px;
+    line-height:1.2;
+    color:var(--ink);
+    cursor:pointer;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    background:transparent;
+    border:0;
+    text-align:left;
+    box-sizing:border-box;
+  }
+  .t-label time{
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+    font-size:11px;
+    letter-spacing:.02em;
+    flex:0 0 auto;
+  }
+  .t-label em{font-style:normal;font-weight:550;overflow:hidden;text-overflow:ellipsis;}
+  .t-label.is-done{color:var(--done);}
+  .t-label.is-done em{text-decoration:line-through;text-decoration-thickness:1px;}
+  .t-label.is-done time{color:var(--done-time);}
+  .t-label .mark{
+    width:11px;height:11px;flex:0 0 auto;
+    border:1px solid var(--pine);
+    border-radius:50%;
+    display:none;
+  }
+  .t-label.is-done .mark{
+    display:inline-block;
+    background:var(--pine);
+    border-color:var(--pine);
+    box-shadow:inset 0 0 0 2px var(--paper);
+  }
+  .timeline-empty{
+    position:absolute;
+    left:0;right:0;top:14px;
+    font-size:12px;
+    color:var(--muted);
+  }
+  #labelMeasure{
+    position:absolute;left:-9999px;top:0;visibility:hidden;
+    pointer-events:none;
+    max-width:148px;
+    height:auto;
+  }
+
+  /* ---------- composer ---------- */
+  .composer{
+    padding-bottom:10px;
+    border-bottom:1.5px solid var(--ink);
+    margin-bottom:8px;
+  }
+  .composer-row{
+    display:flex;
+    align-items:flex-end;
+    gap:16px;
+  }
+  .composer-row input[name="title"]{
+    flex:1;
+    border:0;
+    background:transparent;
+    outline:none;
+    padding:8px 0;
+    font-size:17px;
+    min-width:0;
+  }
+  .composer-row input::placeholder,
+  .time-input::placeholder,
+  .note-input::placeholder{color:var(--placeholder); font-style:italic;}
+  .composer button[type="submit"]{
+    flex:0 0 auto;
+    padding:6px 4px 8px;
+    color:var(--pine);
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:.06em;
+    border-radius:2px;
+    min-width:44px;
+  }
+  .composer button[type="submit"]:hover{opacity:.7;}
+  .composer-meta{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:2px 0 8px;
+    flex-wrap:wrap;
+  }
+  .composer-meta label,
+  .item-time label,
+  .item-note-row label{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:11px;
+    letter-spacing:.08em;
+    color:var(--muted);
+  }
+  .time-input, .note-input{
+    border:0;
+    border-bottom:1px solid var(--line-strong);
+    background:transparent;
+    outline:none;
+    color:var(--ink);
+    font-size:13px;
+    font-variant-numeric:tabular-nums;
+    padding:2px 0;
+    min-width:0;
+    border-radius:2px;
+  }
+  .time-input{width:5.6em;letter-spacing:.04em;}
+  .note-input{width:18em;max-width:100%;}
+  .time-input:focus, .note-input:focus{border-bottom-color:var(--pine);}
+
+  .hint{
+    margin:10px 0 18px;
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  .list{list-style:none;margin:0;padding:0;}
+  .item{
+    display:grid;
+    grid-template-columns:28px 1fr auto;
+    gap:12px 14px;
+    align-items:flex-start;
+    padding:14px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .item.is-done .title{color:var(--done);text-decoration:line-through;text-decoration-thickness:1px;}
+  .item.is-done .note-input{color:var(--done-note);}
+  .item.flash{box-shadow:inset 0 -1.5px 0 var(--pine);}
+
+  .check{
+    width:22px;height:22px;margin-top:2px;
+    border:1.5px solid var(--ink);
+    border-radius:50%;
+    display:grid;place-items:center;
+    background:transparent;
+    transition:background .15s ease,border-color .15s ease;
+  }
+  .check svg{opacity:0;width:12px;height:12px;display:block;}
+  .item.is-done .check{
+    background:var(--pine);
+    border-color:var(--pine);
+  }
+  .item.is-done .check svg{opacity:1;}
+
+  .title{
+    display:block;
+    width:100%;
+    border:0;background:transparent;outline:none;
+    font-size:16.5px;font-weight:500;line-height:1.45;
+    padding:1px 0;
+    border-radius:0;
+  }
+  .title:focus{box-shadow:inset 0 -1px 0 var(--pine);}
+  .item-note-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:6px;
+  }
+  .item-note-row .note-input{flex:1;width:auto;}
+  .item-time{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-top:8px;
+    flex-wrap:wrap;
+  }
+
+  .actions{
+    display:flex;
+    gap:4px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    opacity:0;
+    transition:opacity .15s ease;
+  }
+  .item:hover .actions,
+  .item:focus-within .actions{opacity:1;}
+  .actions button{
+    font-size:12px;
+    color:var(--muted);
+    padding:4px 6px;
+    letter-spacing:.02em;
+    border-radius:2px;
+  }
+  .actions button:hover{color:var(--ink);}
+  .actions button.is-confirm{color:var(--lacquer);font-weight:600;}
+
+  .empty{
+    padding:48px 0 24px;
+    color:var(--muted);
+    text-align:left;
+  }
+  .empty strong{
+    display:block;
+    font-family:"Iowan Old Style","Songti TC","Songti SC","STSong",serif;
+    font-weight:600;
+    font-size:22px;
+    color:var(--ink);
+    margin-bottom:8px;
+  }
+
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:var(--toast-bottom);
+    transform:translateX(-50%) translateY(8px);
+    background:var(--ink);
+    color:var(--ivory);
+    font-size:13px;
+    padding:10px 16px;
+    border-radius:999px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+    z-index:30;
+    max-width:min(90vw, 360px);
+    text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* Focus rings */
+  #newTitle:focus-visible,
+  .title:focus-visible,
+  .time-input:focus-visible,
+  .note-input:focus-visible,
+  .check:focus-visible,
+  .composer button[type="submit"]:focus-visible,
+  .actions button:focus-visible,
+  .filters button:focus-visible,
+  .day-btn:focus-visible,
+  .go-today:focus-visible,
+  .reset-demo:focus-visible,
+  .t-label:focus-visible{
+    outline:2px solid var(--pine);
+    outline-offset:2px;
+  }
+
+  @media (max-width:820px){
+    :root{ --lane-h:44px; }
+    .app{grid-template-columns:1fr;max-width:none;}
+    .rail{
+      position:static;
+      min-height:0;
+      border-right:0;
+      border-bottom:1px solid var(--line-strong);
+      padding:calc(20px + var(--safe-t)) 22px 18px;
+      gap:16px;
+    }
+    .wordmark{font-size:36px;}
+    .wordmark i{margin-top:10px;}
+    .rail-progress-wrap{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;}
+    .progress{flex:1;min-width:0;}
+    .progress-top{flex-direction:column;align-items:flex-start;gap:4px;}
+    .progress-top span{text-align:left;}
+    .filters{
+      flex-direction:row;
+      gap:4px 18px;
+      margin-top:0;
+      flex-wrap:wrap;
+    }
+    .filters button{padding:10px 4px;min-height:44px;}
+    .filters button[aria-pressed="true"]::before{display:none;}
+    .filters button[aria-pressed="true"]{
+      box-shadow:inset 0 -1.5px 0 var(--pine);
+    }
+    .rail-foot{display:none;}
+    .reset-mobile{
+      display:inline-block;
+      margin-top:4px;
+      min-height:44px;
+      padding:8px 0;
+    }
+    .date-sub .tz{display:none;}
+    .day-btn{width:44px;height:44px;}
+    .main{padding:16px 0 var(--list-pad-bottom, 200px);}
+    .timeline-section{margin:0 0 18px;padding:0 22px;}
+    .timeline-scroll{margin:0;padding-bottom:6px;}
+    .timeline{width:1108px;min-width:1108px;}
+    .composer{
+      position:fixed;
+      left:0;right:0;
+      bottom:0;
+      margin:0;
+      padding:10px 22px calc(12px + var(--safe-b));
+      background:var(--ivory);
+      border-top:1px solid var(--line-strong);
+      border-bottom:0;
+      z-index:10;
+    }
+    .composer button[type="submit"]{min-height:44px;min-width:44px;padding:10px 8px;}
+    .time-input, .note-input, #newTitle{min-height:44px;}
+    .hint{display:none;}
+    .actions{opacity:1;}
+    .actions button{min-height:44px;padding:10px 8px;}
+    .list, .empty{padding-left:22px;padding-right:22px;}
+    .check{
+      width:22px;height:22px;
+      padding:11px;
+      margin:-9px 0 0 -11px;
+      box-sizing:content-box;
+      background-clip:padding-box;
+    }
+    .item{grid-template-columns:44px 1fr auto;}
+    .toast{bottom:var(--toast-bottom);}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .bar > i,.check,.toast,.actions{transition:none;}
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <aside class="rail">
+      <div>
+        <p class="eyebrow">工作台 · 設計稿</p>
+        <h1 class="wordmark">案頭<i></i></h1>
+      </div>
+      <div class="date-block">
+        <div class="date-nav">
+          <button type="button" class="day-btn" id="prevDay" aria-label="前一日">‹</button>
+          <p class="date" id="dateMain">—</p>
+          <button type="button" class="day-btn" id="nextDay" aria-label="後一日">›</button>
+        </div>
+        <p class="date-sub" id="dateSub"></p>
+        <button type="button" class="go-today" id="goToday" hidden>回到今天</button>
+      </div>
+      <div class="rail-progress-wrap">
+        <div class="progress">
+          <div class="progress-top">
+            <strong class="remain-count" id="remainCount">0</strong>
+            <span class="remain-label" id="remainLabel">今天還有 0 件事</span>
+          </div>
+          <div class="bar" aria-hidden="true"><i class="bar-fill" id="barFill"></i></div>
+        </div>
+      </div>
+      <nav class="filters" aria-label="篩選">
+        <button type="button" data-filter="all" aria-pressed="true">全部</button>
+        <button type="button" data-filter="open" aria-pressed="false">未完成</button>
+        <button type="button" data-filter="done" aria-pressed="false">已完成</button>
+      </nav>
+      <button type="button" class="reset-demo reset-mobile" id="resetDemoMobile">還原示範資料</button>
+      <div class="rail-foot">
+        資料只存在這台電腦的瀏覽器裡，鍵名 <code style="font-size:11px">wb.desk.todo.mock.v4</code>。<br>
+        這是設計預覽，尚未寫進專案。
+        <div style="margin-top:8px"><button type="button" id="resetDemo" class="reset-demo">還原示範資料</button></div>
+      </div>
+    </aside>
+    <main class="main">
+      <section class="timeline-section" aria-label="今日時間線">
+        <div class="timeline-kicker">
+          <h2>時間線</h2>
+          <p>07:00–23:00 · 有時間的事排在橫軸上</p>
+        </div>
+        <div class="timeline-scroll" id="timelineScroll">
+          <div class="timeline" id="timeline"></div>
+        </div>
+      </section>
+
+      <form class="composer" id="composer" autocomplete="off">
+        <div class="composer-row">
+          <input id="newTitle" name="title" maxlength="200" placeholder="寫下一件要做的事，按 Enter 加入" aria-label="新的待辦" />
+          <button type="submit">加入</button>
+        </div>
+        <div class="composer-meta">
+          <label>開始 <input class="time-input" id="newStart" name="start" inputmode="numeric" placeholder="HH:MM" maxlength="5" spellcheck="false" aria-label="開始時間，24 小時制，例如 19:00" /></label>
+          <label>結束 <input class="time-input" id="newEnd" name="end" inputmode="numeric" placeholder="HH:MM" maxlength="5" spellcheck="false" aria-label="結束時間，24 小時制，例如 20:00" /></label>
+          <label>備註 <input class="note-input" id="newNote" name="note" maxlength="200" placeholder="選填" aria-label="備註，選填" /></label>
+        </div>
+      </form>
+      <p class="hint">時間請用 24 小時制（例如 19:00）。點標題或備註即可修改 · 勾選完成 · 刪除前會再問一次</p>
+      <ul class="list" id="list"></ul>
+      <div class="empty" id="empty" hidden>
+        <strong>案上無一物</strong>
+        這天還沒有要做的事。從上面那一行寫下第一件吧。
+      </div>
+    </main>
+    <aside class="aside" aria-label="今日概況" id="aside">
+      <h2 class="aside-kicker">概況</h2>
+      <div class="rail-progress-wrap">
+        <div class="progress">
+          <div class="progress-top">
+            <strong class="remain-count">0</strong>
+            <span class="remain-label">今天還有 0 件事</span>
+          </div>
+          <div class="bar" aria-hidden="true"><i class="bar-fill"></i></div>
+        </div>
+      </div>
+      <div class="rail-foot">
+        資料只存在這台電腦的瀏覽器裡。<br>
+        這是設計預覽，尚未寫進專案。
+        <div style="margin-top:8px"><button type="button" class="reset-demo">還原示範資料</button></div>
+      </div>
+    </aside>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <span class="t-label" id="labelMeasure" data-measure="1" aria-hidden="true"></span>
+
+<script>
+(function(){
+  var KEY = "wb.desk.todo.mock.v4";
+  var DAY_START = 7;
+  var DAY_END = 23;
+  var DAY_SPAN = DAY_END - DAY_START;
+  var LABEL_MAX = 148;
+  var filter = "all";
+  var toastTimer = null;
+  var store = {};
+  var viewDate = todayStr();
+
+  function todayStr(){
+    var parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone:"Asia/Shanghai", year:"numeric", month:"2-digit", day:"2-digit"
+    }).formatToParts(new Date());
+    var map = {};
+    parts.forEach(function(p){ map[p.type]=p.value; });
+    return map.year + "-" + map.month + "-" + map.day;
+  }
+
+  function shiftDate(iso, days){
+    var p = iso.split("-").map(Number);
+    var dt = new Date(Date.UTC(p[0], p[1]-1, p[2] + days));
+    var y = dt.getUTCFullYear();
+    var m = String(dt.getUTCMonth()+1).padStart(2,"0");
+    var d = String(dt.getUTCDate()).padStart(2,"0");
+    return y + "-" + m + "-" + d;
+  }
+
+  function uid(){
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function seedItems(){
+    var now = Date.now();
+    return [
+      {id:uid(), title:"背單字", note:"只做今天那一組，不必補舊的。", start:"07:30", end:"08:15", done:true, created:now-3600e3*8},
+      {id:uid(), title:"社會錯題", note:"把早上那幾題再看一遍。", start:"12:30", end:"13:30", done:false, created:now-3600e3*5},
+      {id:uid(), title:"英文", note:"複習單字與一句例句。", start:"19:00", end:"20:00", done:false, created:now-3600e3*4},
+      {id:uid(), title:"整理講義", note:"把書桌左邊那疊歸位。", start:"21:30", end:"22:15", done:false, created:now-3600e3*3},
+      {id:uid(), title:"回一封擱著的訊息", note:"", start:"", end:"", done:false, created:now-3600e3*2},
+      {id:uid(), title:"把明天的包收好", note:"充電器、水壺。", start:"", end:"", done:false, created:now-3600e3}
+    ];
+  }
+
+  function stressItems(){
+    var arr = seedItems();
+    var now = Date.now();
+    var hours = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+    for(var i=0;i<38;i++){
+      var h = hours[i % hours.length];
+      var startH = String(h).padStart(2,"0") + ":" + (i%2?"00":"30");
+      var endM = (i%2?50:45);
+      var endH = String(h).padStart(2,"0") + ":" + String(endM).padStart(2,"0");
+      if(endM===50 && h>=23) endH = "23:00";
+      arr.push({
+        id:uid(),
+        title:"大量測試 " + (i+1),
+        note:"分道檢查用",
+        start:startH,
+        end:endH,
+        done: i%7===0,
+        created: now-i*1000
+      });
+    }
+    return arr;
+  }
+
+  function getItems(){
+    if(!store[viewDate]) store[viewDate] = [];
+    return store[viewDate];
+  }
+  function setItems(arr){
+    store[viewDate] = arr;
+    save();
+  }
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(raw){
+        var data = JSON.parse(raw);
+        if(data && typeof data==="object" && !Array.isArray(data)) return data;
+      }
+    }catch(e){}
+    var init = {};
+    init[todayStr()] = /(?:[?&]stress=1\b)/.test(location.search) ? stressItems() : seedItems();
+    return init;
+  }
+
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(store)); }
+    catch(e){ toast("這台瀏覽器無法寫入本機資料"); }
+  }
+
+  store = load();
+  if(!localStorage.getItem(KEY)) save();
+
+  function toast(msg){
+    placeToast();
+    var el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ el.classList.remove("show"); }, 2000);
+  }
+
+  function syncComposerSpace(){
+    var c = document.getElementById("composer");
+    if(window.matchMedia("(max-width:820px)").matches && c){
+      var h = Math.ceil(c.getBoundingClientRect().height) + 12;
+      document.documentElement.style.setProperty("--list-pad-bottom", h + "px");
+      document.documentElement.style.setProperty("--toast-bottom", h + "px");
+    }else{
+      document.documentElement.style.setProperty("--list-pad-bottom", "64px");
+      document.documentElement.style.setProperty("--toast-bottom", "calc(24px + var(--safe-b))");
+    }
+  }
+  function placeToast(){ syncComposerSpace(); }
+
+  function fmtDate(){
+    var p = viewDate.split("-").map(Number);
+    var utc = new Date(Date.UTC(p[0], p[1]-1, p[2], 12, 0, 0));
+    var parts = new Intl.DateTimeFormat("zh-Hant-TW", {
+      timeZone:"UTC", month:"numeric", day:"numeric", weekday:"long"
+    }).formatToParts(utc);
+    var map = {};
+    parts.forEach(function(x){ map[x.type]=x.value; });
+    var isToday = viewDate === todayStr();
+    document.getElementById("dateMain").textContent = map.month + " 月 " + map.day + " 日";
+    document.getElementById("dateSub").innerHTML = map.weekday + (isToday ? "<span class=\"tz\"> · 亞洲／上海時間</span>" : "");
+    document.getElementById("goToday").hidden = isToday;
+    var remainDefault = isToday ? "今天還有 0 件事" : "這天還有 0 件事";
+    Array.prototype.forEach.call(document.querySelectorAll(".remain-label"), function(el){
+      if(!getItems().length) el.textContent = remainDefault;
+    });
+  }
+
+  function nowMinutes(){
+    var parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone:"Asia/Shanghai",
+      hour:"2-digit", minute:"2-digit", hourCycle:"h23"
+    }).formatToParts(new Date());
+    var map = {};
+    parts.forEach(function(p){ map[p.type]=p.value; });
+    return parseInt(map.hour,10)*60 + parseInt(map.minute,10);
+  }
+
+  function parseHM(s){
+    if(s==null) return null;
+    var t = String(s).trim();
+    if(!t) return null;
+    var m = t.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+    if(m) return parseInt(m[1],10)*60 + parseInt(m[2],10);
+    var d = t.match(/^(\d{3,4})$/);
+    if(d){
+      var raw = d[1];
+      var h, min;
+      if(raw.length===3){ h = parseInt(raw.charAt(0),10); min = parseInt(raw.slice(1),10); }
+      else { h = parseInt(raw.slice(0,2),10); min = parseInt(raw.slice(2),10); }
+      if(h<=23 && min<=59) return h*60+min;
+    }
+    return "bad";
+  }
+
+  function fmtHM(mins){
+    var h = Math.floor(mins/60), m = mins%60;
+    return String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
+  }
+
+  function validateTimes(start, end){
+    var a = parseHM(start);
+    var b = parseHM(end);
+    if(a==="bad" || b==="bad") return {ok:false, error:"請輸入 24 小時制時間，例如 19:00"};
+    if(a==null && b!=null) return {ok:false, error:"請先填開始時間"};
+    if(a==null && b==null) return {ok:true, start:"", end:""};
+    if(a < DAY_START*60 || a > DAY_END*60) return {ok:false, error:"時間線只排 07:00 到 23:00"};
+    if(b!=null && (b < DAY_START*60 || b > DAY_END*60)) return {ok:false, error:"時間線只排 07:00 到 23:00"};
+    if(b!=null && b<=a) return {ok:false, error:"結束時間要晚於開始時間"};
+    return {ok:true, start:fmtHM(a), end:b!=null?fmtHM(b):""};
+  }
+
+  function pct(mins){
+    var t = (mins - DAY_START*60) / (DAY_SPAN*60);
+    if(t<0) t = 0;
+    if(t>1) t = 1;
+    return t*100;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c];
+    });
+  }
+
+  function matchesFilter(t){
+    if(filter==="open") return !t.done;
+    if(filter==="done") return t.done;
+    return true;
+  }
+
+  function measureLabel(item){
+    var el = document.getElementById("labelMeasure");
+    el.className = "t-label" + (item.done ? " is-done" : "");
+    el.innerHTML = '<i class="mark" aria-hidden="true"></i>' +
+      "<time>"+escapeHtml(item.start||"")+(item.end?("–"+item.end):"")+"</time>"+
+      "<em>"+escapeHtml(item.title||"")+"</em>";
+    el.style.maxWidth = "none";
+    var w = Math.ceil(el.getBoundingClientRect().width);
+    el.style.maxWidth = "";
+    el.className = "t-label";
+    if(w<8) w = 8;
+    return Math.min(LABEL_MAX, w);
+  }
+
+  function laneHeight(){
+    return window.matchMedia("(max-width:820px)").matches ? 44 : 24;
+  }
+
+  function renderTimeline(){
+    var root = document.getElementById("timeline");
+    var hours = "";
+    for(var h=DAY_START; h<=DAY_END; h++){
+      var edge = h===DAY_START ? "start" : (h===DAY_END ? "end" : "");
+      hours += '<span class="hour"'+(edge?' data-edge="'+edge+'"':'')+' style="left:'+pct(h*60)+'%"><i></i>'+
+        (h<10?"0":"")+h+'</span>';
+    }
+
+    var showNow = viewDate===todayStr();
+    var now = nowMinutes();
+    var nowInRange = showNow && now >= DAY_START*60 && now <= DAY_END*60;
+    var nowPct = pct(now);
+    var nowHtml = nowInRange
+      ? '<div class="now-line'+(nowPct>86?' near-end':'')+'" style="left:'+nowPct+'%"><b>此刻</b></div>'
+      : "";
+
+    var items = getItems();
+    var events = items.filter(function(t){ return parseHM(t.start)!=null && matchesFilter(t); }).map(function(t){
+      var s = parseHM(t.start);
+      var e = parseHM(t.end);
+      if(typeof s!=="number") return null;
+      if(typeof e!=="number" || e<=s) e = Math.min(s+50, DAY_END*60);
+      var text = (t.start||"") + (t.end?("–"+t.end):"") + " " + (t.title||"");
+      return {item:t, start:s, end:e, text:text};
+    }).filter(Boolean).sort(function(a,b){ return a.start-b.start || a.end-b.end; });
+
+    var empty = events.length ? "" : '<p class="timeline-empty">還沒有排進這天時段的事。在下面加上開始時間就會出現在這裡。</p>';
+    root.innerHTML =
+      '<div class="timeline-plot" id="timelinePlot">'+
+        '<div class="timeline-hours">'+hours+"</div>"+
+        '<div class="timeline-axis" id="timelineAxis"></div>'+
+        nowHtml+
+        '<div class="timeline-labels" id="timelineLabels">'+empty+"</div>"+
+      "</div>";
+
+    var plot = document.getElementById("timelinePlot");
+    var plotW = plot.clientWidth || 1;
+    var laneH = laneHeight();
+    events.forEach(function(ev){
+      ev.leftPx = (ev.start - DAY_START*60) / (DAY_SPAN*60) * plotW;
+      ev.labelW = measureLabel(ev.item);
+    });
+
+    var lanes = [];
+    events.forEach(function(ev){
+      var left = ev.leftPx, right = ev.leftPx + ev.labelW;
+      var lane = 0;
+      for(; lane<lanes.length; lane++){
+        var clash = false;
+        for(var i=0;i<lanes[lane].length;i++){
+          var b = lanes[lane][i];
+          if(!(right<=b.left || left>=b.right)){ clash = true; break; }
+        }
+        if(!clash) break;
+      }
+      if(lane===lanes.length) lanes.push([]);
+      lanes[lane].push({left:left, right:right});
+      ev.lane = lane;
+    });
+
+    var axis = document.getElementById("timelineAxis");
+    var lab = document.getElementById("timelineLabels");
+    var spans = "";
+    var labels = "";
+    events.forEach(function(ev){
+      var left = pct(ev.start);
+      var width = Math.max(pct(ev.end)-left, 1.2);
+      var done = ev.item.done ? " is-done" : "";
+      spans += '<i class="t-span'+done+'" style="left:'+left+'%;width:'+width+'%"></i>';
+      labels += '<button type="button" class="t-label'+done+'" data-id="'+escapeHtml(ev.item.id)+'" style="left:'+ev.leftPx+'px;top:'+(8+ev.lane*laneH)+'px;width:'+ev.labelW+'px">'+
+        '<i class="mark" aria-hidden="true"></i>'+
+        '<time>'+escapeHtml(ev.item.start)+(ev.item.end?("–"+ev.item.end):"")+"</time>"+
+        "<em>"+escapeHtml(ev.item.title)+"</em></button>";
+    });
+    axis.innerHTML = spans;
+    var labelH = Math.max(56, 16 + Math.max(lanes.length,1)*laneH);
+    lab.style.minHeight = labelH + "px";
+    if(events.length) lab.innerHTML = labels;
+
+    var scroller = document.getElementById("timelineScroll");
+    if(scroller && scroller.scrollWidth > scroller.clientWidth + 8 && nowInRange){
+      var nowX = (nowPct/100) * plotW;
+      if(nowX > scroller.clientWidth - 32){
+        scroller.scrollLeft = Math.max(0, nowX - scroller.clientWidth + 56);
+      }
+    }
+  }
+
+  function renderList(){
+    var items = getItems();
+    var view = items.filter(matchesFilter);
+    view.sort(function(a,b){
+      if(a.done !== b.done) return a.done ? 1 : -1;
+      var as = parseHM(a.start), bs = parseHM(b.start);
+      if(typeof as==="number" && typeof bs==="number" && as!==bs) return as-bs;
+      if(typeof as==="number" && typeof bs!=="number") return -1;
+      if(typeof as!=="number" && typeof bs==="number") return 1;
+      return (b.created||0)-(a.created||0);
+    });
+
+    var list = document.getElementById("list");
+    var empty = document.getElementById("empty");
+    list.innerHTML = "";
+    if(!view.length){
+      empty.hidden = false;
+      if(filter==="done") empty.innerHTML = "<strong>還沒有劃掉的事</strong>完成一項之後，會出現在這裡。";
+      else if(filter==="open") empty.innerHTML = "<strong>都做完了</strong>未完成的清單是空的。";
+      else empty.innerHTML = "<strong>案上無一物</strong>這天還沒有要做的事。從上面那一行寫下第一件吧。";
+      return;
+    }
+    empty.hidden = true;
+
+    view.forEach(function(t){
+      var li = document.createElement("li");
+      li.className = "item" + (t.done ? " is-done" : "");
+      li.id = "task-"+t.id;
+      li.dataset.id = t.id;
+      li.innerHTML =
+        '<button class="check" type="button" role="checkbox" aria-checked="'+(t.done?"true":"false")+'" aria-label="'+(t.done?"標為未完成":"標為完成")+'">' +
+          '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.2L4.8 9 10 3.2" fill="none" stroke="#faf6ee" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        "</button>" +
+        "<div class='body'>" +
+          '<input class="title" value="'+escapeHtml(t.title)+'" maxlength="200" aria-label="編輯待辦" />' +
+          '<div class="item-note-row"><label>備註 <input class="note-input" maxlength="200" placeholder="選填" aria-label="備註" value="'+escapeHtml(t.note||"")+'" /></label></div>' +
+          '<div class="item-time">'+
+            '<label>開始 <input class="time-input time-start" inputmode="numeric" placeholder="HH:MM" maxlength="5" spellcheck="false" aria-label="開始時間，24 小時制" value="'+escapeHtml(t.start||"")+'" /></label>'+
+            '<label>結束 <input class="time-input time-end" inputmode="numeric" placeholder="HH:MM" maxlength="5" spellcheck="false" aria-label="結束時間，24 小時制" value="'+escapeHtml(t.end||"")+'" /></label>'+
+          "</div>"+
+        "</div>" +
+        '<div class="actions">' +
+          '<button type="button" data-act="del">刪除</button>' +
+          '<button type="button" data-act="cancel" hidden>取消</button>' +
+        "</div>";
+      list.appendChild(li);
+    });
+  }
+
+  function render(){
+    var items = getItems();
+    var open = items.filter(function(t){ return !t.done; }).length;
+    var total = items.length;
+    var done = total - open;
+    var isToday = viewDate === todayStr();
+    var remainText = open === 0
+      ? (total ? (isToday ? "今天的事都做完了" : "這天的事都做完了") : (isToday ? "今天還是空的" : "這天還是空的"))
+      : ((isToday ? "今天還有 " : "這天還有 ") + open + " 件事");
+    var barW = (total ? Math.round(done/total*100) : 0) + "%";
+    Array.prototype.forEach.call(document.querySelectorAll(".remain-count"), function(el){ el.textContent = String(open); });
+    Array.prototype.forEach.call(document.querySelectorAll(".remain-label"), function(el){ el.textContent = remainText; });
+    Array.prototype.forEach.call(document.querySelectorAll(".bar-fill"), function(el){ el.style.width = barW; });
+    fmtDate();
+    renderTimeline();
+    renderList();
+    placeToast();
+  }
+
+  function setFilter(next){
+    filter = next;
+    Array.prototype.forEach.call(document.querySelectorAll(".filters [data-filter]"), function(b){
+      b.setAttribute("aria-pressed", b.getAttribute("data-filter")===filter ? "true" : "false");
+    });
+  }
+
+  function normalizeTimeField(el){
+    var v = (el.value || "").trim();
+    if(!v){ el.value = ""; return; }
+    var p = parseHM(v);
+    if(typeof p === "number") el.value = fmtHM(p);
+  }
+
+  document.getElementById("composer").addEventListener("submit", function(e){
+    e.preventDefault();
+    var input = document.getElementById("newTitle");
+    var title = (input.value || "").trim();
+    if(!title){ toast("請先寫下要做的事"); input.focus(); return; }
+    var times = validateTimes(document.getElementById("newStart").value, document.getElementById("newEnd").value);
+    if(!times.ok){ toast(times.error); return; }
+    var note = (document.getElementById("newNote").value || "").trim();
+    var items = getItems();
+    items.unshift({id:uid(), title:title, note:note, start:times.start, end:times.end, done:false, created:Date.now()});
+    setItems(items);
+    input.value = "";
+    document.getElementById("newStart").value = "";
+    document.getElementById("newEnd").value = "";
+    document.getElementById("newNote").value = "";
+    render();
+    toast(times.start ? "已排進這天" : "已加入案頭");
+  });
+
+  document.getElementById("list").addEventListener("click", function(e){
+    var item = e.target.closest(".item");
+    if(!item) return;
+    var id = item.dataset.id;
+    var items = getItems();
+    var t = items.find(function(x){ return x.id===id; });
+    if(!t) return;
+
+    if(e.target.closest(".check")){
+      t.done = !t.done;
+      t.updated = Date.now();
+      setItems(items);
+      render();
+      return;
+    }
+    var act = e.target.getAttribute("data-act");
+    if(act==="cancel"){
+      var del = item.querySelector('[data-act="del"]');
+      del.textContent = "刪除";
+      del.classList.remove("is-confirm");
+      e.target.hidden = true;
+      return;
+    }
+    if(act==="del"){
+      if(e.target.classList.contains("is-confirm")){
+        setItems(items.filter(function(x){ return x.id!==id; }));
+        render();
+        toast("已刪除");
+        return;
+      }
+      e.target.textContent = "確認刪除";
+      e.target.classList.add("is-confirm");
+      var cancel = item.querySelector('[data-act="cancel"]');
+      if(cancel) cancel.hidden = false;
+    }
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(e.key!=="Escape") return;
+    var changed = false;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-act="del"].is-confirm'), function(btn){
+      btn.textContent = "刪除";
+      btn.classList.remove("is-confirm");
+      var cancel = btn.parentNode && btn.parentNode.querySelector('[data-act="cancel"]');
+      if(cancel) cancel.hidden = true;
+      changed = true;
+    });
+    if(changed) e.preventDefault();
+  });
+
+  document.getElementById("list").addEventListener("blur", function(e){
+    if(e.target.classList.contains("time-input")) normalizeTimeField(e.target);
+  }, true);
+  document.getElementById("newStart").addEventListener("blur", function(){ normalizeTimeField(this); });
+  document.getElementById("newEnd").addEventListener("blur", function(){ normalizeTimeField(this); });
+
+  document.getElementById("list").addEventListener("change", function(e){
+    var item = e.target.closest(".item");
+    if(!item) return;
+    var items = getItems();
+    var t = items.find(function(x){ return x.id===item.dataset.id; });
+    if(!t) return;
+    if(e.target.classList.contains("title")){
+      var next = e.target.value.trim();
+      if(!next){ e.target.value = t.title; toast("請先寫下要做的事"); return; }
+      if(next !== t.title){
+        t.title = next;
+        t.updated = Date.now();
+        setItems(items);
+        renderTimeline();
+        toast("已改好");
+      }
+      return;
+    }
+    if(e.target.classList.contains("note-input")){
+      var note = e.target.value.trim();
+      if(note !== (t.note||"")){
+        t.note = note;
+        t.updated = Date.now();
+        setItems(items);
+        toast("已改好");
+      }
+      return;
+    }
+    if(e.target.classList.contains("time-start") || e.target.classList.contains("time-end")){
+      var row = item;
+      var times = validateTimes(row.querySelector(".time-start").value, row.querySelector(".time-end").value);
+      if(!times.ok){
+        toast(times.error);
+        row.querySelector(".time-start").value = t.start||"";
+        row.querySelector(".time-end").value = t.end||"";
+        return;
+      }
+      t.start = times.start;
+      t.end = times.end;
+      t.updated = Date.now();
+      setItems(items);
+      render();
+    }
+  });
+
+  document.getElementById("list").addEventListener("keydown", function(e){
+    if(e.target.classList.contains("title") && e.key==="Enter"){
+      e.preventDefault();
+      e.target.blur();
+    }
+  });
+
+  document.getElementById("timeline").addEventListener("click", function(e){
+    var btn = e.target.closest(".t-label");
+    if(!btn) return;
+    var id = btn.getAttribute("data-id");
+    var t = getItems().find(function(x){ return x.id===id; });
+    if(!t) return;
+    if(!matchesFilter(t)){
+      setFilter("all");
+      render();
+    }
+    var el = document.getElementById("task-"+id);
+    if(!el) return;
+    el.scrollIntoView({block:"nearest", behavior:"smooth"});
+    el.classList.add("flash");
+    var title = el.querySelector(".title");
+    if(title) title.focus();
+    setTimeout(function(){ el.classList.remove("flash"); }, 1200);
+  });
+
+  document.querySelector(".filters").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-filter]");
+    if(!btn) return;
+    setFilter(btn.getAttribute("data-filter"));
+    render();
+  });
+
+  function resetDemo(){
+    viewDate = todayStr();
+    store[viewDate] = /(?:[?&]stress=1\b)/.test(location.search) ? stressItems() : seedItems();
+    save();
+    setFilter("all");
+    render();
+    toast("已還原示範資料");
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".reset-demo"), function(btn){
+    btn.addEventListener("click", resetDemo);
+  });
+
+  document.getElementById("prevDay").addEventListener("click", function(){
+    viewDate = shiftDate(viewDate, -1);
+    render();
+  });
+  document.getElementById("nextDay").addEventListener("click", function(){
+    viewDate = shiftDate(viewDate, 1);
+    render();
+  });
+  document.getElementById("goToday").addEventListener("click", function(){
+    viewDate = todayStr();
+    render();
+  });
+
+  window.addEventListener("resize", function(){
+    renderTimeline();
+    syncComposerSpace();
+  });
+  if(window.ResizeObserver){
+    var composerEl = document.getElementById("composer");
+    if(composerEl) new ResizeObserver(function(){ syncComposerSpace(); }).observe(composerEl);
+  }
+  syncComposerSpace();
+
+  window.__wbParseHM = parseHM;
+  window.__wbFmtHM = fmtHM;
+  window.__wbValidateTimes = validateTimes;
+  window.__wbSelfTest = function(){
+    var aside = document.getElementById("aside");
+    var labels = Array.prototype.slice.call(document.querySelectorAll(".t-label"));
+    var boxes = labels.map(function(el){
+      var r = el.getBoundingClientRect();
+      return {id:el.getAttribute("data-id"), text:el.textContent, left:r.left, right:r.right, top:r.top, bottom:r.bottom};
+    });
+    var overlaps = [];
+    for(var i=0;i<boxes.length;i++){
+      for(var j=i+1;j<boxes.length;j++){
+        var a=boxes[i], b=boxes[j];
+        var hit = !(a.right<=b.left || a.left>=b.right || a.bottom<=b.top || a.top>=b.bottom);
+        if(hit) overlaps.push([a.text,b.text]);
+      }
+    }
+    var cs = getComputedStyle(aside);
+    var railProgress = document.querySelector(".rail .rail-progress-wrap");
+    var railFoot = document.querySelector(".rail .rail-foot");
+    return {
+      width: window.innerWidth,
+      asideDisplay: cs.display,
+      asideVisible: cs.display!=="none" && aside.getBoundingClientRect().width>0,
+      railProgressDisplay: railProgress ? getComputedStyle(railProgress).display : null,
+      railFootDisplay: railFoot ? getComputedStyle(railFoot).display : null,
+      remain: (document.querySelector(".remain-count")||{}).textContent,
+      labelCount: labels.length,
+      overlaps: overlaps,
+      overlapCount: overlaps.length,
+      viewDate: viewDate,
+      today: todayStr(),
+      nowLine: !!document.querySelector(".now-line"),
+      mobileReset: (function(){
+        var b=document.getElementById("resetDemoMobile");
+        return b && getComputedStyle(b).display!=="none";
+      })(),
+      timelineMinWidth: getComputedStyle(document.getElementById("timeline")).minWidth,
+      timelineWidth: document.getElementById("timeline").getBoundingClientRect().width,
+      timelineScroll: document.getElementById("timelineScroll").clientWidth,
+      timelineScrollable: document.getElementById("timelineScroll").scrollWidth - document.getElementById("timelineScroll").clientWidth,
+      listPadBottom: getComputedStyle(document.querySelector(".main")).paddingBottom,
+      composerHeight: document.getElementById("composer").getBoundingClientRect().height,
+      lastItem: (function(){
+        var items = document.querySelectorAll("#list .item");
+        var last = items[items.length-1];
+        var composer = document.getElementById("composer");
+        if(!last) return null;
+        var r = last.getBoundingClientRect();
+        var cr = composer.getBoundingClientRect();
+        var note = last.querySelector(".note-input");
+        var time = last.querySelector(".item-time");
+        var del = last.querySelector('[data-act="del"]');
+        function vis(el){
+          if(!el) return false;
+          var b = el.getBoundingClientRect();
+          return b.bottom <= cr.top - 1 && b.top >= 0;
+        }
+        return {
+          title: (last.querySelector(".title")||{}).value,
+          bottom: r.bottom,
+          composerTop: cr.top,
+          gap: cr.top - r.bottom,
+          noteVisible: vis(note),
+          timeVisible: vis(time),
+          delVisible: vis(del),
+          clearOfComposer: r.bottom <= cr.top - 1
+        };
+      })(),
+      doneLabelTexts: Array.prototype.map.call(document.querySelectorAll(".t-label.is-done em"), function(el){ return el.textContent; })
+    };
+  };
+
+  fmtDate();
+  render();
+  if(/[?&]scroll=end\b/.test(location.search)){
+    requestAnimationFrame(function(){
+      syncComposerSpace();
+      window.scrollTo(0, Math.max(document.documentElement.scrollHeight, document.body.scrollHeight));
+    });
+  }
+})();
+</script>
+</body>
+</html>
