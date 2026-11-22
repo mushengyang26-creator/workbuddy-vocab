@@ -223,7 +223,7 @@
   }
 
   /* ---------- timeline ---------- */
-  .timeline-section{margin:0 0 26px;}
+  .timeline-section{margin:0 0 8px;}
   .timeline-kicker{
     display:flex;
     justify-content:space-between;
@@ -261,9 +261,28 @@
     width:calc(100% - 148px);
     min-height:96px;
   }
+  .timeline-now-row{
+    position:relative;
+    height:16px;
+  }
+  .now-label{
+    position:absolute;
+    top:0;
+    font-size:10px;
+    font-weight:600;
+    color:var(--pine);
+    letter-spacing:.1em;
+    white-space:nowrap;
+    line-height:16px;
+    pointer-events:none;
+    z-index:4;
+    transform:translateX(-50%);
+  }
+  .now-label.is-start{transform:none;}
+  .now-label.is-end{transform:translateX(-100%);}
   .timeline-hours{
     position:relative;
-    height:22px;
+    height:18px;
   }
   .hour{
     position:absolute;
@@ -279,8 +298,8 @@
   .hour i{
     position:absolute;
     left:50%;
-    top:16px;
-    width:1px;height:6px;
+    top:14px;
+    width:1px;height:4px;
     background:var(--line-strong);
     display:block;
   }
@@ -300,25 +319,31 @@
     opacity:.78;
   }
   .t-span.is-done{background:#5c564c;opacity:.45;}
-  .now-line{
+  .timeline-gutter{
+    position:relative;
+    height:8px;
+  }
+  .now-mark{
     position:absolute;
-    top:22px;bottom:0;
-    width:1px;
-    background:var(--pine);
-    z-index:4;
+    top:0;
+    width:8px;
+    height:7px;
+    margin-left:-4px;
     pointer-events:none;
+    z-index:4;
   }
-  .now-line b{
+  .now-mark::before{
+    content:"";
     position:absolute;
-    top:-2px;
-    left:6px;
-    font-size:10px;
-    font-weight:600;
-    color:var(--pine);
-    letter-spacing:.1em;
-    white-space:nowrap;
+    left:50%;
+    bottom:0;
+    transform:translateX(-50%);
+    width:0;
+    height:0;
+    border-left:4px solid transparent;
+    border-right:4px solid transparent;
+    border-top:6px solid var(--pine);
   }
-  .now-line.near-end b{left:auto;right:6px;}
   .timeline-labels{position:relative;min-height:56px;padding-top:8px;}
   .t-label{
     position:absolute;
@@ -538,8 +563,9 @@
   .toast{
     position:fixed;
     left:50%;
-    bottom:var(--toast-bottom);
-    transform:translateX(-50%) translateY(8px);
+    top:calc(16px + var(--safe-t));
+    bottom:auto;
+    transform:translateX(-50%) translateY(-8px);
     background:var(--ink);
     color:var(--ivory);
     font-size:13px;
@@ -569,7 +595,6 @@
   .filters button:focus-visible,
   .day-btn:focus-visible,
   .go-today:focus-visible,
-  .reset-demo:focus-visible,
   .t-label:focus-visible,
   .fab-add:focus-visible{
     outline:2px solid var(--pine);
@@ -594,42 +619,38 @@
       max-width:100%;
       border-right:0;
       border-bottom:1px solid var(--line-strong);
-      padding:calc(20px + var(--safe-t)) 22px 18px;
-      gap:16px;
+      padding:calc(16px + var(--safe-t)) 16px 8px;
+      gap:8px;
     }
-    .wordmark{font-size:36px;}
-    .wordmark i{margin-top:10px;}
-    .rail-progress-wrap{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;min-width:0;}
+    .wordmark{font-size:32px;}
+    .wordmark i{margin-top:8px;}
+    .rail-progress-wrap{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;min-width:0;}
     .progress{flex:1;min-width:0;}
-    .progress-top{flex-direction:column;align-items:flex-start;gap:4px;}
+    .progress-top{flex-direction:column;align-items:flex-start;gap:0;}
     .progress-top span{text-align:left;}
+    .bar{margin-top:8px;}
     .filters{
       flex-direction:row;
-      gap:4px 18px;
+      gap:0 8px;
       margin-top:0;
       flex-wrap:wrap;
     }
-    .filters button{padding:10px 12px;min-height:44px;min-width:44px;box-sizing:border-box;}
+    .filters button{padding:8px 8px;min-height:44px;min-width:44px;box-sizing:border-box;}
     .filters button[aria-pressed="true"]::before{display:none;}
     .filters button[aria-pressed="true"]{
       box-shadow:inset 0 -1.5px 0 var(--pine);
     }
     .rail-foot{display:none;}
-    .reset-mobile{
-      display:inline-block;
-      margin-top:4px;
-      min-height:44px;
-      padding:8px 0;
-    }
+    .date-sub{margin:0;}
     .date-sub .tz{display:none;}
     .day-btn{width:44px;height:44px;}
     .main{
-      padding:16px 0 var(--list-pad-bottom, 88px);
+      padding:8px 0 var(--list-pad-bottom, 88px);
       min-width:0;
       max-width:100%;
       overflow-x:clip;
     }
-    .timeline-section{margin:0 0 18px;padding:0 22px;min-width:0;max-width:100%;}
+    .timeline-section{margin:0 0 16px;padding:0 16px;min-width:0;max-width:100%;}
     .timeline-kicker{
       flex-direction:column;
       align-items:flex-start;
@@ -699,14 +720,28 @@
     .hint{display:none;}
     .actions{opacity:1;}
     .actions button{min-height:44px;min-width:44px;padding:10px 12px;box-sizing:border-box;}
-    .list{padding-left:22px;padding-right:80px;}
-    .empty{padding:8px 80px 16px 22px;}
+    .list{padding-left:16px;padding-right:80px;}
+    .empty{padding:8px 80px 16px 16px;}
     .empty strong{font-size:20px;margin-bottom:4px;}
     .timeline.is-empty{min-height:0;}
     .timeline.is-empty .timeline-plot{min-height:0;}
     .timeline.is-empty .timeline-labels{min-height:0 !important;padding-top:0;}
     .timeline.is-empty .timeline-empty{display:none;}
-    .item-note-row{align-items:flex-start;}
+    .item{
+      grid-template-columns:44px minmax(0,1fr) auto;
+      grid-template-areas:
+        "check title actions"
+        ". meta meta";
+      column-gap:8px;
+      row-gap:0;
+      align-items:center;
+      padding:8px 0;
+    }
+    .item .check{grid-area:check;align-self:center;justify-self:center;}
+    .item .title{grid-area:title;overflow-wrap:anywhere;min-width:0;}
+    .item .actions{grid-area:actions;align-self:center;opacity:1;}
+    .item .item-meta{grid-area:meta;min-width:0;}
+    .item-note-row{align-items:flex-start;margin-top:4px;}
     .item-note-row label{
       display:flex;
       align-items:flex-start;
@@ -720,25 +755,73 @@
       width:100%;
       max-width:100%;
       min-width:0;
-      min-height:44px;
+      min-height:24px;
       resize:none;
       overflow:hidden;
       white-space:pre-wrap;
       overflow-wrap:anywhere;
       word-break:break-word;
-      line-height:1.45;
+      line-height:1.4;
+      padding:2px 0;
+    }
+    .item-time{
+      display:flex;
+      flex-wrap:nowrap;
+      align-items:center;
+      gap:8px;
+      margin-top:4px;
+    }
+    .item-time .time-dash{
+      color:var(--muted);
+      font-variant-numeric:tabular-nums;
+      font-size:13px;
+      flex:0 0 auto;
+    }
+    .item-time .time-input{
+      width:4.8em;
+      min-height:32px;
     }
     .check{
-      width:22px;height:22px;
-      padding:11px;
-      margin:-9px 0 0 -11px;
-      box-sizing:content-box;
+      width:44px;height:44px;
+      padding:0;
+      margin:0;
+      box-sizing:border-box;
+      border:0;
+      background:transparent;
+      display:grid;
+      place-items:center;
+      position:relative;
       background-clip:padding-box;
       transition:none;
     }
-    .item{grid-template-columns:44px minmax(0,1fr) auto;}
-    .title{overflow-wrap:anywhere;}
-    .toast{bottom:var(--toast-bottom);}
+    .check::after{
+      content:"";
+      width:30px;height:30px;
+      border:1.5px solid var(--ink);
+      border-radius:50%;
+      box-sizing:border-box;
+      grid-area:1/1;
+    }
+    .item.is-done .check{
+      background:transparent;
+      border-color:transparent;
+    }
+    .item.is-done .check::after{
+      background:var(--pine);
+      border-color:var(--pine);
+    }
+    .check svg{width:14px;height:14px;position:relative;z-index:1;grid-area:1/1;}
+    .toast{
+      top:calc(8px + var(--safe-t));
+      bottom:auto;
+      left:50%;
+      right:auto;
+      transform:translateX(-50%) translateY(-8px);
+      font-size:12px;
+      padding:8px 16px;
+      max-width:min(90vw, 280px);
+    }
+    .toast.show{transform:translateX(-50%) translateY(0);}
 
     .fab-add{
       display:grid;
@@ -804,11 +887,9 @@
         <button type="button" data-filter="open" aria-pressed="false">未完成</button>
         <button type="button" data-filter="done" aria-pressed="false">已完成</button>
       </nav>
-      <button type="button" class="reset-demo reset-mobile" id="resetDemoMobile">還原示範資料</button>
       <div class="rail-foot">
         資料只存在這台電腦的瀏覽器裡，鍵名 <code style="font-size:11px">wb.desk.todo.mock.v4</code>。<br>
         這是設計預覽，尚未寫進專案。
-        <div style="margin-top:8px"><button type="button" id="resetDemo" class="reset-demo">還原示範資料</button></div>
       </div>
     </aside>
     <main class="main">
@@ -854,7 +935,6 @@
       <div class="rail-foot">
         資料只存在這台電腦的瀏覽器裡。<br>
         這是設計預覽，尚未寫進專案。
-        <div style="margin-top:8px"><button type="button" class="reset-demo">還原示範資料</button></div>
       </div>
     </aside>
   </div>
@@ -1202,8 +1282,12 @@
     var now = nowMinutes();
     var nowInRange = showNow && now >= DAY_START*60 && now <= DAY_END*60;
     var nowPct = pct(now);
-    var nowHtml = nowInRange
-      ? '<div class="now-line'+(nowPct>86?' near-end':'')+'" style="left:'+nowPct+'%"><b>此刻</b></div>'
+    var nowSide = nowPct < 8 ? " is-start" : (nowPct > 92 ? " is-end" : "");
+    var nowLabelHtml = nowInRange
+      ? '<span class="now-label'+nowSide+'" style="left:'+nowPct+'%">此刻</span>'
+      : "";
+    var nowMarkHtml = nowInRange
+      ? '<i class="now-mark" style="left:'+nowPct+'%" aria-hidden="true"></i>'
       : "";
 
     var items = getItems();
@@ -1219,9 +1303,10 @@
     var empty = events.length ? "" : '<p class="timeline-empty">還沒有排進這天時段的事。在下面加上開始時間就會出現在這裡。</p>';
     root.innerHTML =
       '<div class="timeline-plot" id="timelinePlot">'+
+        '<div class="timeline-now-row" id="timelineNowRow">'+nowLabelHtml+"</div>"+
         '<div class="timeline-hours">'+hours+"</div>"+
+        '<div class="timeline-gutter">'+nowMarkHtml+"</div>"+
         '<div class="timeline-axis" id="timelineAxis"></div>'+
-        nowHtml+
         '<div class="timeline-labels" id="timelineLabels">'+empty+"</div>"+
       "</div>";
 
@@ -1241,7 +1326,7 @@
         var clash = false;
         for(var i=0;i<lanes[lane].length;i++){
           var b = lanes[lane][i];
-          if(!(right<=b.left || left>=b.right)){ clash = true; break; }
+          if(!(right+8<=b.left || left>=b.right+8)){ clash = true; break; }
         }
         if(!clash) break;
       }
@@ -1316,6 +1401,7 @@
     }
     collect(".hour", "hour");
     collect(".t-label", "label");
+    collect(".now-label", "now");
     var maxLeft = 0, maxRight = 0;
     var leftItem = null, rightItem = null;
     items.forEach(function(x){
@@ -1389,7 +1475,7 @@
   function autosizeNote(el){
     if(!el || el.tagName !== "TEXTAREA") return;
     el.style.height = "auto";
-    el.style.height = Math.max(44, el.scrollHeight) + "px";
+    el.style.height = Math.max(24, el.scrollHeight) + "px";
   }
   function autosizeNotes(){
     if(!isMobile()) return;
@@ -1428,26 +1514,34 @@
       li.className = "item" + (t.done ? " is-done" : "");
       li.id = "task-"+t.id;
       li.dataset.id = t.id;
-      li.innerHTML =
+      var checkHtml =
         '<button class="check" type="button" role="checkbox" aria-checked="'+(t.done?"true":"false")+'" aria-label="'+(t.done?"標為未完成":"標為完成")+'">' +
           '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.2L4.8 9 10 3.2" fill="none" stroke="#faf6ee" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-        "</button>" +
-        "<div class='body'>" +
-          '<input class="title" value="'+escapeHtml(t.title)+'" maxlength="200" aria-label="編輯待辦" />' +
-          '<div class="item-note-row"><label>備註 '+
-            (isMobile()
-              ? '<textarea class="note-input" rows="1" maxlength="200" placeholder="選填" aria-label="備註">'+escapeHtml(t.note||"")+'</textarea>'
-              : '<input class="note-input" maxlength="200" placeholder="選填" aria-label="備註" value="'+escapeHtml(t.note||"")+'" />')+
-            '</label></div>' +
-          '<div class="item-time">'+
-            '<label>開始 <input class="time-input time-start" inputmode="numeric" placeholder="HH:MM" maxlength="5" spellcheck="false" aria-label="開始時間，24 小時制" value="'+escapeHtml(t.start||"")+'" /></label>'+
-            '<label>結束 <input class="time-input time-end" inputmode="numeric" placeholder="HH:MM" maxlength="5" spellcheck="false" aria-label="結束時間，24 小時制" value="'+escapeHtml(t.end||"")+'" /></label>'+
-          "</div>"+
-        "</div>" +
+        "</button>";
+      var actionsHtml =
         '<div class="actions">' +
           '<button type="button" data-act="del">刪除</button>' +
           '<button type="button" data-act="cancel" hidden>取消</button>' +
         "</div>";
+      var noteHtml = '<div class="item-note-row"><label>備註 '+
+        (isMobile()
+          ? '<textarea class="note-input" rows="1" maxlength="200" placeholder="選填" aria-label="備註">'+escapeHtml(t.note||"")+'</textarea>'
+          : '<input class="note-input" maxlength="200" placeholder="選填" aria-label="備註" value="'+escapeHtml(t.note||"")+'" />')+
+        '</label></div>';
+      var timeHtml = isMobile()
+        ? '<div class="item-time">'+
+            '<input class="time-input time-start" inputmode="numeric" placeholder="HH:MM" maxlength="5" spellcheck="false" aria-label="開始時間，24 小時制" value="'+escapeHtml(t.start||"")+'" />'+
+            '<span class="time-dash" aria-hidden="true">–</span>'+
+            '<input class="time-input time-end" inputmode="numeric" placeholder="HH:MM" maxlength="5" spellcheck="false" aria-label="結束時間，24 小時制" value="'+escapeHtml(t.end||"")+'" />'+
+          "</div>"
+        : '<div class="item-time">'+
+            '<label>開始 <input class="time-input time-start" inputmode="numeric" placeholder="HH:MM" maxlength="5" spellcheck="false" aria-label="開始時間，24 小時制" value="'+escapeHtml(t.start||"")+'" /></label>'+
+            '<label>結束 <input class="time-input time-end" inputmode="numeric" placeholder="HH:MM" maxlength="5" spellcheck="false" aria-label="結束時間，24 小時制" value="'+escapeHtml(t.end||"")+'" /></label>'+
+          "</div>";
+      var titleHtml = '<input class="title" value="'+escapeHtml(t.title)+'" maxlength="200" aria-label="編輯待辦" />';
+      li.innerHTML = isMobile()
+        ? checkHtml + titleHtml + actionsHtml + '<div class="item-meta">'+noteHtml+timeHtml+"</div>"
+        : checkHtml + "<div class='body'>" + titleHtml + noteHtml + timeHtml + "</div>" + actionsHtml;
       list.appendChild(li);
     });
   }
@@ -1651,18 +1745,6 @@
     render();
   });
 
-  function resetDemo(){
-    viewDate = todayStr();
-    store[viewDate] = /(?:[?&]stress=1\b)/.test(location.search) ? stressItems() : seedItems();
-    save();
-    setFilter("all");
-    render();
-    toast("已還原示範資料");
-  }
-  Array.prototype.forEach.call(document.querySelectorAll(".reset-demo"), function(btn){
-    btn.addEventListener("click", resetDemo);
-  });
-
   document.getElementById("prevDay").addEventListener("click", function(){
     viewDate = shiftDate(viewDate, -1);
     render();
@@ -1733,11 +1815,8 @@
       overlapCount: overlaps.length,
       viewDate: viewDate,
       today: todayStr(),
-      nowLine: !!document.querySelector(".now-line"),
-      mobileReset: (function(){
-        var b=document.getElementById("resetDemoMobile");
-        return b && getComputedStyle(b).display!=="none";
-      })(),
+      nowLine: !!document.querySelector(".now-mark, .now-label"),
+      mobileReset: false,
       timelineMinWidth: getComputedStyle(document.getElementById("timeline")).minWidth,
       timelineWidth: document.getElementById("timeline").getBoundingClientRect().width,
       timelineScroll: document.getElementById("timelineScroll").clientWidth,
